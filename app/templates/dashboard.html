@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+    <p class="text-gray-600 mt-1">Visão geral do sistema</p>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-yellow-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-sm font-medium">Propostas Pendentes</p>
+                <p class="text-3xl font-bold text-gray-900 mt-1">{{ stats.pending_proposals }}</p>
+            </div>
+            <div class="w-14 h-14 bg-yellow-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-clock text-yellow-600 text-2xl"></i>
+            </div>
+        </div>
+        <a href="/propostas?status=pending" class="text-yellow-600 text-sm mt-4 inline-block hover:underline">
+            Ver pendentes <i class="fas fa-arrow-right ml-1"></i>
+        </a>
+    </div>
+
+    <div class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-green-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-sm font-medium">Propostas Aprovadas</p>
+                <p class="text-3xl font-bold text-gray-900 mt-1">{{ stats.approved_proposals }}</p>
+            </div>
+            <div class="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-check text-green-600 text-2xl"></i>
+            </div>
+        </div>
+        <a href="/propostas?status=approved" class="text-green-600 text-sm mt-4 inline-block hover:underline">
+            Ver aprovadas <i class="fas fa-arrow-right ml-1"></i>
+        </a>
+    </div>
+
+    <div class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-blue-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-sm font-medium">Corretores Ativos</p>
+                <p class="text-3xl font-bold text-gray-900 mt-1">{{ stats.total_brokers }}</p>
+            </div>
+            <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-user-tie text-blue-600 text-2xl"></i>
+            </div>
+        </div>
+        <a href="/corretores" class="text-blue-600 text-sm mt-4 inline-block hover:underline">
+            Ver corretores <i class="fas fa-arrow-right ml-1"></i>
+        </a>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="bg-white rounded-xl p-6 shadow-lg">
+    <h2 class="text-xl font-bold text-gray-900 mb-4">Ações Rápidas</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <a href="/propostas?status=pending" class="flex flex-col items-center p-4 bg-yellow-50 rounded-xl hover:bg-yellow-100 transition">
+            <i class="fas fa-file-alt text-yellow-600 text-2xl mb-2"></i>
+            <span class="text-sm font-medium text-gray-700">Analisar Propostas</span>
+        </a>
+        <a href="/propostas?status=assigned" class="flex flex-col items-center p-4 bg-blue-50 rounded-xl hover:bg-blue-100 transition">
+            <i class="fas fa-tasks text-blue-600 text-2xl mb-2"></i>
+            <span class="text-sm font-medium text-gray-700">Acompanhar</span>
+        </a>
+        <a href="/corretores" class="flex flex-col items-center p-4 bg-green-50 rounded-xl hover:bg-green-100 transition">
+            <i class="fas fa-user-plus text-green-600 text-2xl mb-2"></i>
+            <span class="text-sm font-medium text-gray-700">Corretores</span>
+        </a>
+        <a href="#" class="flex flex-col items-center p-4 bg-purple-50 rounded-xl hover:bg-purple-100 transition">
+            <i class="fas fa-chart-bar text-purple-600 text-2xl mb-2"></i>
+            <span class="text-sm font-medium text-gray-700">Relatórios</span>
+        </a>
+    </div>
+</div>
+{% endblock %}

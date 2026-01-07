@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Corretores{% endblock %}
+
+{% block content %}
+<div class="mb-8 flex items-center justify-between">
+    <div>
+        <h1 class="text-3xl font-bold text-gray-900">Corretores</h1>
+        <p class="text-gray-600 mt-1">Gerencie a equipe de corretores</p>
+    </div>
+</div>
+
+<!-- Brokers Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for broker in brokers %}
+    <div class="bg-white rounded-xl p-6 shadow-lg">
+        <div class="flex items-center gap-4 mb-4">
+            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-user text-blue-600 text-2xl"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-gray-900">{{ broker.name }}</h3>
+                <p class="text-sm text-gray-500">{{ broker.email or 'Sem e-mail' }}</p>
+            </div>
+        </div>
+
+        <div class="space-y-2 text-sm">
+            <div class="flex justify-between">
+                <span class="text-gray-500">Telefone:</span>
+                <span class="font-medium">{{ broker.phone or '-' }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-500">Status:</span>
+                {% if broker.is_active %}
+                <span class="text-green-600 font-medium"><i class="fas fa-check-circle mr-1"></i>Ativo</span>
+                {% else %}
+                <span class="text-red-600 font-medium"><i class="fas fa-times-circle mr-1"></i>Inativo</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="mt-4 pt-4 border-t flex gap-2">
+            {% if broker.phone %}
+            <a href="https://wa.me/55{{ broker.phone | replace('(', '') | replace(')', '') | replace('-', '') | replace(' ', '') }}"
+               target="_blank"
+               class="flex-1 text-center bg-green-100 hover:bg-green-200 text-green-700 py-2 rounded-lg text-sm font-medium transition">
+                <i class="fab fa-whatsapp mr-1"></i>WhatsApp
+            </a>
+            {% endif %}
+            {% if broker.email %}
+            <a href="mailto:{{ broker.email }}"
+               class="flex-1 text-center bg-blue-100 hover:bg-blue-200 text-blue-700 py-2 rounded-lg text-sm font-medium transition">
+                <i class="fas fa-envelope mr-1"></i>E-mail
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="col-span-full text-center py-12">
+        <i class="fas fa-user-slash text-4xl text-gray-300 mb-4"></i>
+        <p class="text-gray-500">Nenhum corretor cadastrado</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

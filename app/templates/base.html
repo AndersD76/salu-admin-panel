@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin{% endblock %} - Salu Imóveis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Sidebar -->
+    <aside class="fixed left-0 top-0 h-full w-64 bg-gray-900 text-white z-50">
+        <div class="p-6 border-b border-gray-800">
+            <h1 class="text-xl font-bold">
+                <i class="fas fa-building mr-2"></i>Salu Admin
+            </h1>
+        </div>
+
+        <nav class="p-4">
+            <ul class="space-y-2">
+                <li>
+                    <a href="/" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 transition {% if request.url.path == '/' %}bg-gray-800{% endif %}">
+                        <i class="fas fa-chart-line w-6"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/propostas" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 transition {% if 'proposta' in request.url.path %}bg-gray-800{% endif %}">
+                        <i class="fas fa-file-contract w-6"></i>
+                        <span>Propostas</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/corretores" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 transition {% if 'corretor' in request.url.path %}bg-gray-800{% endif %}">
+                        <i class="fas fa-user-tie w-6"></i>
+                        <span>Corretores</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-800">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div>
+                    <p class="font-semibold text-sm">Administrador</p>
+                    <p class="text-xs text-gray-400">admin@saluimoveis.com</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="ml-64 p-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

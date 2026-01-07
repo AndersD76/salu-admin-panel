@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}Proposta - {{ proposal.name }}{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <a href="/propostas" class="text-blue-600 hover:text-blue-800 text-sm mb-2 inline-block">
+        <i class="fas fa-arrow-left mr-1"></i> Voltar para propostas
+    </a>
+    <h1 class="text-3xl font-bold text-gray-900">Detalhes da Proposta</h1>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Main Info -->
+    <div class="lg:col-span-2 space-y-6">
+        <!-- Proponent Data -->
+        <div class="bg-white rounded-xl p-6 shadow-lg">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">
+                <i class="fas fa-user text-blue-600 mr-2"></i>Dados do Proponente
+            </h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-sm text-gray-500">Nome</p>
+                    <p class="font-semibold">{{ proposal.name }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">E-mail</p>
+                    <p class="font-semibold">{{ proposal.email }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Telefone</p>
+                    <p class="font-semibold">{{ proposal.phone }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">CPF</p>
+                    <p class="font-semibold">{{ proposal.cpf or '-' }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Situação Profissional</p>
+                    <p class="font-semibold">{{ proposal.employment_type or '-' }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Renda Mensal</p>
+                    <p class="font-semibold">
+                        {% if proposal.monthly_income %}
+                        R$ {{ "{:,.0f}".format(proposal.monthly_income).replace(',', '.') }}
+                        {% else %}-{% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Proposal Data -->
+        <div class="bg-white rounded-xl p-6 shadow-lg">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">
+                <i class="fas fa-file-contract text-blue-600 mr-2"></i>Dados da Proposta
+            </h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-sm text-gray-500">Tipo</p>
+                    <p class="font-semibold">
+                        {% if proposal.type.value == 'BUY' %}Compra
+                        {% elif proposal.type.value == 'RENT' %}Aluguel
+                        {% else %}Venda{% endif %}
+                    </p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Valor Proposto</p>
+                    <p class="font-semibold text-blue-600 text-xl">
+                        {% if proposal.proposed_value %}
+                        R$ {{ "{:,.0f}".format(proposal.proposed_value).replace(',', '.') }}
+                        {% else %}Valor anunciado{% endif %}
+                    </p>
+                </div>
+                {% if proposal.type.value == 'RENT' %}
+                <div>
+                    <p class="text-sm text-gray-500">Período de Locação</p>
+                    <p class="font-semibold">{{ proposal.rental_period or '-' }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Data de Mudança</p>
+                    <p class="font-semibold">
+                        {% if proposal.move_in_date %}
+                        {{ proposal.move_in_date.strftime('%d/%m/%Y') }}
+                        {% else %}-{% endif %}
+                    </p>
+                </div>
+                {% else %}
+                <div>
+                    <p class="text-sm text-gray-500">Forma de Pagamento</p>
+                    <p class="font-semibold">{{ proposal.payment_method or '-' }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Financiamento Aprovado?</p>
+                    <p class="font-semibold">
+                        {% if proposal.has_financing_approval %}
+                        <span class="text-green-600"><i class="fas fa-check mr-1"></i>Sim</span>
+                        {% else %}
+                        <span class="text-gray-500">Não</span>
+                        {% endif %}
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if proposal.message %}
+            <div class="mt-4 pt-4 border-t">
+                <p class="text-sm text-gray-500 mb-2">Mensagem</p>
+                <p class="text-gray-700 bg-gray-50 p-4 rounded-lg">{{ proposal.message }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Property Info -->
+        {% if property %}
+        <div class="bg-white rounded-xl p-6 shadow-lg">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">
+                <i class="fas fa-home text-blue-600 mr-2"></i>Imóvel
+            </h2>
+            <div class="flex items-start gap-4">
+                <div class="w-24 h-24 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-home text-gray-400 text-2xl"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-900">{{ property.title or property.property_type }}</h3>
+                    <p class="text-gray-600">{{ property.neighborhood }}, {{ property.city }}</p>
+                    <div class="mt-2">
+                        {% if property.sale_price %}
+                        <span class="text-green-600 font-bold">Venda: R$ {{ "{:,.0f}".format(property.sale_price).replace(',', '.') }}</span>
+                        {% endif %}
+                        {% if property.rental_price %}
+                        <span class="text-orange-600 font-bold ml-4">Aluguel: R$ {{ "{:,.0f}".format(property.rental_price).replace(',', '.') }}/mês</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar - Actions -->
+    <div class="space-y-6">
+        <!-- Status Card -->
+        <div class="bg-white rounded-xl p-6 shadow-lg">
+            <h3 class="font-bold text-gray-900 mb-4">Status da Proposta</h3>
+
+            <div class="text-center py-4">
+                {% if proposal.status.value == 'PENDING' %}
+                <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-clock text-yellow-600 text-2xl"></i>
+                </div>
+                <p class="font-bold text-yellow-600">Aguardando Análise</p>
+                {% elif proposal.status.value == 'BROKER_ASSIGNED' %}
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-user-check text-blue-600 text-2xl"></i>
+                </div>
+                <p class="font-bold text-blue-600">Com Corretor</p>
+                {% elif proposal.status.value == 'ADMIN_REJECTED' %}
+                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-times text-red-600 text-2xl"></i>
+                </div>
+                <p class="font-bold text-red-600">Rejeitada</p>
+                {% endif %}
+            </div>
+
+            <p class="text-sm text-gray-500 text-center">
+                Criada em {{ proposal.created_at.strftime('%d/%m/%Y às %H:%M') }}
+            </p>
+        </div>
+
+        <!-- Action Form -->
+        {% if proposal.status.value == 'PENDING' %}
+        <div class="bg-white rounded-xl p-6 shadow-lg">
+            <h3 class="font-bold text-gray-900 mb-4">Ações</h3>
+
+            <!-- Approve Form -->
+            <form action="/proposta/{{ proposal.id }}/aprovar" method="POST" class="mb-4">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Direcionar para Corretor *</label>
+                    <select name="broker_id" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Selecione um corretor</option>
+                        {% for broker in brokers %}
+                        <option value="{{ broker.id }}">{{ broker.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Observações</label>
+                    <textarea name="admin_notes" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Notas internas..."></textarea>
+                </div>
+                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold transition">
+                    <i class="fas fa-check mr-2"></i>Aprovar e Direcionar
+                </button>
+            </form>
+
+            <!-- Reject Form -->
+            <form action="/proposta/{{ proposal.id }}/rejeitar" method="POST">
+                <input type="hidden" name="admin_notes" value="">
+                <button type="submit" class="w-full bg-red-100 hover:bg-red-200 text-red-700 py-3 rounded-lg font-bold transition">
+                    <i class="fas fa-times mr-2"></i>Rejeitar Proposta
+                </button>
+            </form>
+        </div>
+        {% endif %}
+
+        <!-- Contact Actions -->
+        <div class="bg-white rounded-xl p-6 shadow-lg">
+            <h3 class="font-bold text-gray-900 mb-4">Contato Rápido</h3>
+            <div class="space-y-3">
+                <a href="https://wa.me/55{{ proposal.phone | replace('(', '') | replace(')', '') | replace('-', '') | replace(' ', '') }}"
+                   target="_blank"
+                   class="flex items-center justify-center w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-bold transition">
+                    <i class="fab fa-whatsapp mr-2 text-xl"></i>WhatsApp
+                </a>
+                <a href="mailto:{{ proposal.email }}"
+                   class="flex items-center justify-center w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-bold transition">
+                    <i class="fas fa-envelope mr-2"></i>E-mail
+                </a>
+                <a href="tel:{{ proposal.phone }}"
+                   class="flex items-center justify-center w-full bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-lg font-bold transition">
+                    <i class="fas fa-phone mr-2"></i>Ligar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

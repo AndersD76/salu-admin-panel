@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Propostas{% endblock %}
+
+{% block content %}
+<div class="mb-8 flex items-center justify-between">
+    <div>
+        <h1 class="text-3xl font-bold text-gray-900">Propostas</h1>
+        <p class="text-gray-600 mt-1">Gerencie propostas de compra e aluguel</p>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="bg-white rounded-xl p-4 shadow-lg mb-6">
+    <div class="flex flex-wrap gap-2">
+        <a href="/propostas" class="px-4 py-2 rounded-lg text-sm font-medium transition
+           {% if not current_status %}bg-blue-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+            Todas
+        </a>
+        <a href="/propostas?status=pending" class="px-4 py-2 rounded-lg text-sm font-medium transition
+           {% if current_status == 'pending' %}bg-yellow-500 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+            <i class="fas fa-clock mr-1"></i> Pendentes
+        </a>
+        <a href="/propostas?status=approved" class="px-4 py-2 rounded-lg text-sm font-medium transition
+           {% if current_status == 'approved' %}bg-green-500 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+            <i class="fas fa-check mr-1"></i> Aprovadas
+        </a>
+        <a href="/propostas?status=assigned" class="px-4 py-2 rounded-lg text-sm font-medium transition
+           {% if current_status == 'assigned' %}bg-blue-500 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+            <i class="fas fa-user-check mr-1"></i> Com Corretor
+        </a>
+        <a href="/propostas?status=rejected" class="px-4 py-2 rounded-lg text-sm font-medium transition
+           {% if current_status == 'rejected' %}bg-red-500 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+            <i class="fas fa-times mr-1"></i> Rejeitadas
+        </a>
+    </div>
+</div>
+
+<!-- Proposals List -->
+<div class="bg-white rounded-xl shadow-lg overflow-hidden">
+    <table class="w-full">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Proposta</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Tipo</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Imóvel</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Valor</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Data</th>
+                <th class="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase">Ações</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+            {% for item in proposals %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4">
+                    <div>
+                        <p class="font-semibold text-gray-900">{{ item.proposal.name }}</p>
+                        <p class="text-sm text-gray-500">{{ item.proposal.email }}</p>
+                        <p class="text-sm text-gray-500">{{ item.proposal.phone }}</p>
+                    </div>
+                </td>
+                <td class="px-6 py-4">
+                    {% if item.proposal.type.value == 'BUY' %}
+                    <span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
+                        <i class="fas fa-home mr-1"></i> Compra
+                    </span>
+                    {% elif item.proposal.type.value == 'RENT' %}
+                    <span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
+                        <i class="fas fa-key mr-1"></i> Aluguel
+                    </span>
+                    {% else %}
+                    <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
+                        <i class="fas fa-tag mr-1"></i> Venda
+                    </span>
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4">
+                    {% if item.property %}
+                    <p class="text-sm text-gray-900">{{ item.property.title or item.property.property_type }}</p>
+                    <p class="text-xs text-gray-500">{{ item.property.neighborhood }}, {{ item.property.city }}</p>
+                    {% else %}
+                    <span class="text-gray-400 text-sm">-</span>
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4">
+                    {% if item.proposal.proposed_value %}
+                    <span class="font-semibold text-gray-900">R$ {{ "{:,.0f}".format(item.proposal.proposed_value).replace(',', '.') }}</span>
+                    {% else %}
+                    <span class="text-gray-400">-</span>
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4">
+                    {% if item.proposal.status.value == 'PENDING' %}
+                    <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">Pendente</span>
+                    {% elif item.proposal.status.value == 'ADMIN_APPROVED' %}
+                    <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">Aprovada</span>
+                    {% elif item.proposal.status.value == 'BROKER_ASSIGNED' %}
+                    <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">Com Corretor</span>
+                    {% elif item.proposal.status.value == 'ADMIN_REJECTED' %}
+                    <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">Rejeitada</span>
+                    {% elif item.proposal.status.value == 'NEGOTIATING' %}
+                    <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">Negociando</span>
+                    {% elif item.proposal.status.value == 'APPROVED' %}
+                    <span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">Fechada</span>
+                    {% else %}
+                    <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">{{ item.proposal.status.value }}</span>
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4">
+                    <span class="text-sm text-gray-600">{{ item.proposal.created_at.strftime('%d/%m/%Y') }}</span>
+                    <span class="text-xs text-gray-400 block">{{ item.proposal.created_at.strftime('%H:%M') }}</span>
+                </td>
+                <td class="px-6 py-4 text-center">
+                    <a href="/proposta/{{ item.proposal.id }}" class="text-blue-600 hover:text-blue-800 font-medium text-sm">
+                        <i class="fas fa-eye mr-1"></i> Ver
+                    </a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+                    <i class="fas fa-inbox text-4xl mb-4 text-gray-300"></i>
+                    <p>Nenhuma proposta encontrada</p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
