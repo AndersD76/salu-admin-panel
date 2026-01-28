@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% block title %}Leads{% endblock %}
+{% block page_title %}CRM - Leads{% endblock %}
+
+{% block content %}
+<!-- Header com Ações -->
+<div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+    <div class="flex flex-wrap gap-2">
+        <a href="/crm/leads" class="px-4 py-2 rounded-lg {% if not current_status %}bg-gradient-to-r from-[#0095D0] to-[#004C70] text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %} transition">
+            Todos
+        </a>
+        <a href="/crm/leads?status=novo" class="px-4 py-2 rounded-lg {% if current_status == 'novo' %}bg-blue-500 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %} transition">
+            Novos
+        </a>
+        <a href="/crm/leads?status=qualificado" class="px-4 py-2 rounded-lg {% if current_status == 'qualificado' %}bg-yellow-500 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %} transition">
+            Qualificados
+        </a>
+        <a href="/crm/leads?status=convertido" class="px-4 py-2 rounded-lg {% if current_status == 'convertido' %}bg-green-500 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %} transition">
+            Convertidos
+        </a>
+    </div>
+    <button onclick="document.getElementById('modalNovoLead').classList.remove('hidden')" class="px-4 py-2 bg-gradient-to-r from-[#0095D0] to-[#004C70] text-white rounded-lg hover:shadow-lg font-semibold">
+        <i class="fas fa-plus mr-2"></i>Novo Lead
+    </button>
+</div>
+
+<!-- Tabela de Leads -->
+<div class="bg-white rounded-xl shadow-md overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gradient-to-r from-[#0095D0] to-[#004C70] text-white">
+                <tr>
+                    <th class="px-6 py-4 text-left text-sm font-semibold">Lead</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold">Contato</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold">Interesse</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold">Origem</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold">Status</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold">Data</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold">Ações</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                {% for lead in leads %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-gradient-to-r from-[#0095D0] to-[#004C70] rounded-full flex items-center justify-center text-white font-bold">
+                                {{ lead.name[0].upper() }}
+                            </div>
+                            <div>
+                                <p class="font-semibold text-gray-900">{{ lead.name }}</p>
+                                <p class="text-xs text-gray-500">{{ lead.city or 'Cidade não informada' }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <p class="text-sm text-gray-600">{{ lead.email or '-' }}</p>
+                        <p class="text-sm text-gray-600">{{ lead.phone or '-' }}</p>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 rounded-full text-xs font-bold
+                            {% if lead.interest_type == 'COMPRA' %}bg-blue-100 text-blue-800
+                            {% elif lead.interest_type == 'ALUGUEL' %}bg-purple-100 text-purple-800
+                            {% elif lead.interest_type == 'VENDA' %}bg-green-100 text-green-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ lead.interest_type or 'N/A' }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-600">{{ lead.source or '-' }}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 rounded-full text-xs font-bold
+                            {% if lead.status == 'NOVO' %}bg-blue-100 text-blue-800
+                            {% elif lead.status == 'QUALIFICADO' %}bg-yellow-100 text-yellow-800
+                            {% elif lead.status == 'CONVERTIDO' %}bg-green-100 text-green-800
+                            {% elif lead.status == 'PERDIDO' %}bg-red-100 text-red-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ lead.status }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-600">{{ lead.created_at.strftime('%d/%m/%Y') if lead.created_at else 'N/A' }}</td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-2">
+                            <a href="/crm/lead/{{ lead.id }}" class="w-8 h-8 flex items-center justify-center rounded-lg bg-[#0095D0] text-white hover:bg-[#004C70] transition" title="Ver detalhes">
+                                <i class="fas fa-eye text-sm"></i>
+                            </a>
+                            {% if lead.phone %}
+                            <a href="https://wa.me/55{{ lead.phone | replace('(', '') | replace(')', '') | replace(' ', '') | replace('-', '') }}" target="_blank" class="w-8 h-8 flex items-center justify-center rounded-lg bg-green-500 text-white hover:bg-green-600 transition" title="WhatsApp">
+                                <i class="fab fa-whatsapp text-sm"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+                        <i class="fas fa-users text-4xl mb-3 text-gray-300"></i>
+                        <p>Nenhum lead encontrado</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="mt-4 text-sm text-gray-600">
+    <p>Total: {{ leads|length }} leads</p>
+</div>
+
+<!-- Modal Novo Lead (igual ao dashboard) -->
+<div id="modalNovoLead" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+    <div class="bg-white rounded-xl shadow-2xl p-6 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-bold text-gray-900">Novo Lead</h3>
+            <button onclick="document.getElementById('modalNovoLead').classList.add('hidden')" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <form action="/crm/lead/novo" method="POST" class="space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Nome *</label>
+                <input type="text" name="name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0095D0]">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+                    <input type="email" name="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0095D0]">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Telefone</label>
+                    <input type="text" name="phone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0095D0]">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Origem</label>
+                    <select name="source" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0095D0]">
+                        <option value="">Selecione...</option>
+                        <option value="SITE">Site</option>
+                        <option value="WHATSAPP">WhatsApp</option>
+                        <option value="INDICACAO">Indicação</option>
+                        <option value="INSTAGRAM">Instagram</option>
+                        <option value="FACEBOOK">Facebook</option>
+                        <option value="TELEFONE">Telefone</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Interesse</label>
+                    <select name="interest_type" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0095D0]">
+                        <option value="">Selecione...</option>
+                        <option value="COMPRA">Compra</option>
+                        <option value="ALUGUEL">Aluguel</option>
+                        <option value="VENDA">Venda</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Cidade</label>
+                <input type="text" name="city" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0095D0]">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Observações</label>
+                <textarea name="notes" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0095D0]"></textarea>
+            </div>
+            <div class="flex gap-3 pt-4">
+                <button type="button" onclick="document.getElementById('modalNovoLead').classList.add('hidden')" class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-semibold">
+                    Cancelar
+                </button>
+                <button type="submit" class="flex-1 px-4 py-2 bg-gradient-to-r from-[#0095D0] to-[#004C70] text-white rounded-lg hover:shadow-lg font-semibold">
+                    Salvar Lead
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

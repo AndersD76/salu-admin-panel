@@ -1,0 +1,800 @@
+{% extends "base.html" %}
+{% block title %}Relatórios{% endblock %}
+{% block page_title %}Relatórios e Métricas{% endblock %}
+
+{% block content %}
+<!-- Tabs de Navegação -->
+<div class="bg-white rounded-xl shadow-md p-2 mb-6">
+    <div class="flex flex-wrap gap-2">
+        <button onclick="showSection('overview')" class="tab-btn active px-4 py-2 rounded-lg text-sm font-medium transition bg-[#0095D0] text-white" data-tab="overview">
+            <i class="fas fa-tachometer-alt mr-2"></i>Visão Geral
+        </button>
+        <button onclick="showSection('properties')" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition bg-gray-100 text-gray-700 hover:bg-gray-200" data-tab="properties">
+            <i class="fas fa-building mr-2"></i>Imóveis
+        </button>
+        <button onclick="showSection('users')" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition bg-gray-100 text-gray-700 hover:bg-gray-200" data-tab="users">
+            <i class="fas fa-users mr-2"></i>Usuários
+        </button>
+        <button onclick="showSection('proposals')" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition bg-gray-100 text-gray-700 hover:bg-gray-200" data-tab="proposals">
+            <i class="fas fa-file-alt mr-2"></i>Propostas
+        </button>
+        <button onclick="showSection('visits')" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition bg-gray-100 text-gray-700 hover:bg-gray-200" data-tab="visits">
+            <i class="fas fa-calendar-check mr-2"></i>Visitas
+        </button>
+        <button onclick="showSection('brokers')" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition bg-gray-100 text-gray-700 hover:bg-gray-200" data-tab="brokers">
+            <i class="fas fa-user-tie mr-2"></i>Corretores
+        </button>
+        {% if crm_stats %}
+        <button onclick="showSection('crm')" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition bg-gray-100 text-gray-700 hover:bg-gray-200" data-tab="crm">
+            <i class="fas fa-funnel-dollar mr-2"></i>CRM
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ============ VISÃO GERAL ============ -->
+<div id="section-overview" class="section-content">
+    <!-- Cards Principais -->
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+        <div class="bg-white rounded-xl shadow-md p-4 border-l-4 border-[#0095D0]">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-gray-500 uppercase font-semibold">Imóveis Ativos</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ active_properties }}</p>
+                </div>
+                <i class="fas fa-building text-[#0095D0] text-2xl opacity-50"></i>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-4 border-l-4 border-green-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-gray-500 uppercase font-semibold">Usuários Ativos</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ active_users }}</p>
+                </div>
+                <i class="fas fa-users text-green-500 text-2xl opacity-50"></i>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-4 border-l-4 border-purple-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-gray-500 uppercase font-semibold">Views Hoje</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ total_views_today }}</p>
+                </div>
+                <i class="fas fa-eye text-purple-500 text-2xl opacity-50"></i>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-4 border-l-4 border-orange-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-gray-500 uppercase font-semibold">Propostas Pendentes</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ proposal_stats.pending }}</p>
+                </div>
+                <i class="fas fa-clock text-orange-500 text-2xl opacity-50"></i>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-4 border-l-4 border-blue-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-gray-500 uppercase font-semibold">Visitas Hoje</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ visits_today }}</p>
+                </div>
+                <i class="fas fa-calendar-day text-blue-500 text-2xl opacity-50"></i>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-4 border-l-4 border-red-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-gray-500 uppercase font-semibold">Contatos (30d)</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ contacts_30d }}</p>
+                </div>
+                <i class="fas fa-envelope text-red-500 text-2xl opacity-50"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos de Visão Geral -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Gráfico de Visualizações -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-chart-line text-[#0095D0] mr-2"></i>
+                Visualizações de Imóveis (30 dias)
+            </h3>
+            <canvas id="viewsChart" height="200"></canvas>
+        </div>
+
+        <!-- Gráfico de Novos Usuários -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-user-plus text-green-500 mr-2"></i>
+                Novos Usuários (30 dias)
+            </h3>
+            <canvas id="usersChart" height="200"></canvas>
+        </div>
+    </div>
+
+    <!-- Top Imóveis Mais Vistos -->
+    <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+        <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+            <i class="fas fa-fire text-orange-500 mr-2"></i>
+            Imóveis Mais Visitados (30 dias)
+        </h3>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">#</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Imóvel</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Localização</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Preço</th>
+                        <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Visualizações</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for prop in most_viewed_properties %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3">
+                            <span class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-[#0095D0] to-[#004C70] text-white rounded-full text-sm font-bold">
+                                {{ loop.index }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <p class="font-medium text-gray-900">{{ prop[1] or 'Sem título' }}</p>
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-600">
+                            {{ prop[2] or '' }}{% if prop[3] %} - {{ prop[3] }}{% endif %}
+                        </td>
+                        <td class="px-4 py-3 text-sm">
+                            {% if prop[4] %}
+                            <span class="text-green-600 font-semibold">R$ {{ "{:,.0f}".format(prop[4]).replace(',', '.') }}</span>
+                            {% elif prop[5] %}
+                            <span class="text-blue-600 font-semibold">R$ {{ "{:,.0f}".format(prop[5]).replace(',', '.') }}/mês</span>
+                            {% else %}
+                            <span class="text-gray-400">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3 text-right">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-purple-100 text-purple-800">
+                                <i class="fas fa-eye mr-1"></i>{{ prop[6] }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="px-4 py-8 text-center text-gray-500">
+                            Nenhuma visualização registrada
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ============ IMÓVEIS ============ -->
+<div id="section-properties" class="section-content hidden">
+    <!-- Cards de Imóveis -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-[#0095D0]">
+            <p class="text-sm text-gray-500 font-semibold">Total de Imóveis</p>
+            <p class="text-3xl font-bold text-gray-900">{{ total_properties }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
+            <p class="text-sm text-gray-500 font-semibold">Imóveis Ativos</p>
+            <p class="text-3xl font-bold text-green-600">{{ active_properties }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500">
+            <p class="text-sm text-gray-500 font-semibold">Views (30 dias)</p>
+            <p class="text-3xl font-bold text-purple-600">{{ total_views_30d }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-orange-500">
+            <p class="text-sm text-gray-500 font-semibold">Favoritos Total</p>
+            <p class="text-3xl font-bold text-orange-600">{{ total_favorites }}</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Imóveis por Tipo -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">
+                <i class="fas fa-chart-pie text-[#0095D0] mr-2"></i>
+                Imóveis por Tipo
+            </h3>
+            <canvas id="propertyTypeChart" height="250"></canvas>
+        </div>
+
+        <!-- Imóveis por Cidade -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">
+                <i class="fas fa-map-marker-alt text-red-500 mr-2"></i>
+                Top 10 Cidades
+            </h3>
+            <div class="space-y-3">
+                {% for city in properties_by_city %}
+                <div class="flex items-center">
+                    <span class="w-32 text-sm text-gray-700 truncate">{{ city[0] or 'Não informada' }}</span>
+                    <div class="flex-1 mx-3">
+                        {% set max_city = properties_by_city[0][1] if properties_by_city else 1 %}
+                        <div class="w-full bg-gray-200 rounded-full h-4">
+                            <div class="bg-gradient-to-r from-[#0095D0] to-[#004C70] h-4 rounded-full" style="width: {{ (city[1] / max_city * 100) }}%"></div>
+                        </div>
+                    </div>
+                    <span class="text-sm font-bold text-gray-900 w-12 text-right">{{ city[1] }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Imóveis Mais Favoritados -->
+    <div class="bg-white rounded-xl shadow-md p-6">
+        <h3 class="text-lg font-bold text-gray-800 mb-4">
+            <i class="fas fa-heart text-red-500 mr-2"></i>
+            Imóveis Mais Favoritados
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {% for fav in most_favorited[:5] %}
+            <div class="bg-gray-50 rounded-lg p-4 text-center">
+                <div class="w-12 h-12 bg-gradient-to-br from-red-400 to-red-600 rounded-full flex items-center justify-center text-white mx-auto mb-2">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <p class="font-semibold text-gray-900 text-sm truncate">{{ fav[1] or 'Imóvel' }}</p>
+                <p class="text-xs text-gray-500">{{ fav[2] or '' }}</p>
+                <p class="text-2xl font-bold text-red-500 mt-2">{{ fav[3] }}</p>
+                <p class="text-xs text-gray-500">favoritos</p>
+            </div>
+            {% else %}
+            <div class="col-span-5 text-center py-8 text-gray-500">
+                Nenhum favorito registrado
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- ============ USUÁRIOS ============ -->
+<div id="section-users" class="section-content hidden">
+    <!-- Cards de Usuários -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-[#0095D0]">
+            <p class="text-sm text-gray-500 font-semibold">Total de Usuários</p>
+            <p class="text-3xl font-bold text-gray-900">{{ total_users }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
+            <p class="text-sm text-gray-500 font-semibold">Usuários Ativos</p>
+            <p class="text-3xl font-bold text-green-600">{{ active_users }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500">
+            <p class="text-sm text-gray-500 font-semibold">Novos (30 dias)</p>
+            <p class="text-3xl font-bold text-purple-600">{{ new_users_30d }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-orange-500">
+            <p class="text-sm text-gray-500 font-semibold">Taxa de Atividade</p>
+            <p class="text-3xl font-bold text-orange-600">{{ "%.0f"|format(active_users / total_users * 100) if total_users > 0 else 0 }}%</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Usuários por Tipo -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">
+                <i class="fas fa-users-cog text-[#0095D0] mr-2"></i>
+                Usuários por Tipo
+            </h3>
+            <canvas id="userRoleChart" height="250"></canvas>
+        </div>
+
+        <!-- Distribuição Visual -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">
+                <i class="fas fa-chart-bar text-green-500 mr-2"></i>
+                Distribuição de Usuários
+            </h3>
+            <div class="space-y-4">
+                <div class="flex items-center p-4 bg-purple-50 rounded-lg">
+                    <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center text-white mr-4">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-900">Administradores</p>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                            <div class="bg-purple-500 h-2 rounded-full" style="width: {{ (users_by_role.admin / total_users * 100) if total_users > 0 else 0 }}%"></div>
+                        </div>
+                    </div>
+                    <span class="text-2xl font-bold text-purple-600 ml-4">{{ users_by_role.admin }}</span>
+                </div>
+                <div class="flex items-center p-4 bg-blue-50 rounded-lg">
+                    <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white mr-4">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-900">Corretores</p>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                            <div class="bg-blue-500 h-2 rounded-full" style="width: {{ (users_by_role.broker / total_users * 100) if total_users > 0 else 0 }}%"></div>
+                        </div>
+                    </div>
+                    <span class="text-2xl font-bold text-blue-600 ml-4">{{ users_by_role.broker }}</span>
+                </div>
+                <div class="flex items-center p-4 bg-green-50 rounded-lg">
+                    <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white mr-4">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-900">Proprietários</p>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                            <div class="bg-green-500 h-2 rounded-full" style="width: {{ (users_by_role.owner / total_users * 100) if total_users > 0 else 0 }}%"></div>
+                        </div>
+                    </div>
+                    <span class="text-2xl font-bold text-green-600 ml-4">{{ users_by_role.owner }}</span>
+                </div>
+                <div class="flex items-center p-4 bg-gray-100 rounded-lg">
+                    <div class="w-12 h-12 bg-gray-500 rounded-full flex items-center justify-center text-white mr-4">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-900">Clientes</p>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                            <div class="bg-gray-500 h-2 rounded-full" style="width: {{ (users_by_role.user / total_users * 100) if total_users > 0 else 0 }}%"></div>
+                        </div>
+                    </div>
+                    <span class="text-2xl font-bold text-gray-600 ml-4">{{ users_by_role.user }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============ PROPOSTAS ============ -->
+<div id="section-proposals" class="section-content hidden">
+    <!-- Cards de Propostas -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-orange-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-500 font-semibold">Pendentes</p>
+                    <p class="text-3xl font-bold text-orange-600">{{ proposal_stats.pending }}</p>
+                </div>
+                <i class="fas fa-clock text-orange-500 text-3xl opacity-30"></i>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-500 font-semibold">Com Corretor</p>
+                    <p class="text-3xl font-bold text-blue-600">{{ proposal_stats.assigned }}</p>
+                </div>
+                <i class="fas fa-user-tie text-blue-500 text-3xl opacity-30"></i>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-500 font-semibold">Aprovadas</p>
+                    <p class="text-3xl font-bold text-green-600">{{ proposal_stats.approved }}</p>
+                </div>
+                <i class="fas fa-check-circle text-green-500 text-3xl opacity-30"></i>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-500 font-semibold">Rejeitadas</p>
+                    <p class="text-3xl font-bold text-red-600">{{ proposal_stats.rejected }}</p>
+                </div>
+                <i class="fas fa-times-circle text-red-500 text-3xl opacity-30"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Propostas por Tipo -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">
+                <i class="fas fa-chart-pie text-[#0095D0] mr-2"></i>
+                Propostas por Tipo
+            </h3>
+            <div class="space-y-4">
+                {% set total_proposals = proposal_by_type.buy + proposal_by_type.rent + proposal_by_type.sell %}
+                <div>
+                    <div class="flex justify-between mb-1">
+                        <span class="text-sm font-semibold text-gray-700"><i class="fas fa-shopping-cart text-blue-600 mr-2"></i>Compra</span>
+                        <span class="text-lg font-bold text-blue-600">{{ proposal_by_type.buy }}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-blue-500 h-3 rounded-full" style="width: {{ (proposal_by_type.buy / total_proposals * 100) if total_proposals > 0 else 0 }}%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between mb-1">
+                        <span class="text-sm font-semibold text-gray-700"><i class="fas fa-key text-purple-600 mr-2"></i>Aluguel</span>
+                        <span class="text-lg font-bold text-purple-600">{{ proposal_by_type.rent }}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-purple-500 h-3 rounded-full" style="width: {{ (proposal_by_type.rent / total_proposals * 100) if total_proposals > 0 else 0 }}%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between mb-1">
+                        <span class="text-sm font-semibold text-gray-700"><i class="fas fa-tag text-green-600 mr-2"></i>Venda (Proprietário)</span>
+                        <span class="text-lg font-bold text-green-600">{{ proposal_by_type.sell }}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-green-500 h-3 rounded-full" style="width: {{ (proposal_by_type.sell / total_proposals * 100) if total_proposals > 0 else 0 }}%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-6 pt-4 border-t border-gray-200">
+                <div class="flex justify-between items-center">
+                    <span class="font-bold text-gray-700">Total</span>
+                    <span class="text-3xl font-bold text-[#0095D0]">{{ total_proposals }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Taxa de Conversão -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">
+                <i class="fas fa-percentage text-green-500 mr-2"></i>
+                Taxa de Conversão
+            </h3>
+            {% set total_all = proposal_stats.pending + proposal_stats.assigned + proposal_stats.approved + proposal_stats.rejected %}
+            {% set approval_rate = (proposal_stats.approved / total_all * 100) if total_all > 0 else 0 %}
+            <div class="flex items-center justify-center py-8">
+                <div class="relative">
+                    <svg class="transform -rotate-90 w-48 h-48">
+                        <circle cx="96" cy="96" r="80" stroke="#e5e7eb" stroke-width="16" fill="none" />
+                        <circle cx="96" cy="96" r="80" stroke="#10b981" stroke-width="16" fill="none"
+                                stroke-dasharray="{{ 2 * 3.14159 * 80 }}"
+                                stroke-dashoffset="{{ 2 * 3.14159 * 80 * (1 - approval_rate / 100) }}"
+                                stroke-linecap="round" />
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <span class="text-4xl font-bold text-green-600">{{ "%.1f"|format(approval_rate) }}%</span>
+                        <span class="text-sm text-gray-500">aprovação</span>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center text-sm text-gray-500">
+                {{ proposal_stats.approved }} aprovadas de {{ total_all }} propostas
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============ VISITAS ============ -->
+<div id="section-visits" class="section-content hidden">
+    <!-- Cards de Visitas -->
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+        <div class="bg-white rounded-xl shadow-md p-4 border-l-4 border-[#0095D0]">
+            <p class="text-xs text-gray-500 font-semibold">Total</p>
+            <p class="text-2xl font-bold text-gray-900">{{ total_visits }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-4 border-l-4 border-blue-500">
+            <p class="text-xs text-gray-500 font-semibold">Agendadas</p>
+            <p class="text-2xl font-bold text-blue-600">{{ visits_scheduled }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-4 border-l-4 border-yellow-500">
+            <p class="text-xs text-gray-500 font-semibold">Confirmadas</p>
+            <p class="text-2xl font-bold text-yellow-600">{{ visits_confirmed }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-4 border-l-4 border-green-500">
+            <p class="text-xs text-gray-500 font-semibold">Realizadas</p>
+            <p class="text-2xl font-bold text-green-600">{{ visits_completed }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-4 border-l-4 border-red-500">
+            <p class="text-xs text-gray-500 font-semibold">Canceladas</p>
+            <p class="text-2xl font-bold text-red-600">{{ visits_cancelled }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-4 border-l-4 border-purple-500">
+            <p class="text-xs text-gray-500 font-semibold">Esta Semana</p>
+            <p class="text-2xl font-bold text-purple-600">{{ visits_week }}</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Gráfico de Status de Visitas -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">
+                <i class="fas fa-chart-doughnut text-[#0095D0] mr-2"></i>
+                Status das Visitas
+            </h3>
+            <canvas id="visitsStatusChart" height="250"></canvas>
+        </div>
+
+        <!-- Taxa de Realização -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">
+                <i class="fas fa-check-double text-green-500 mr-2"></i>
+                Taxa de Realização
+            </h3>
+            {% set non_cancelled = total_visits - visits_cancelled %}
+            {% set completion_rate = (visits_completed / non_cancelled * 100) if non_cancelled > 0 else 0 %}
+            <div class="flex items-center justify-center py-8">
+                <div class="relative">
+                    <svg class="transform -rotate-90 w-48 h-48">
+                        <circle cx="96" cy="96" r="80" stroke="#e5e7eb" stroke-width="16" fill="none" />
+                        <circle cx="96" cy="96" r="80" stroke="#10b981" stroke-width="16" fill="none"
+                                stroke-dasharray="{{ 2 * 3.14159 * 80 }}"
+                                stroke-dashoffset="{{ 2 * 3.14159 * 80 * (1 - completion_rate / 100) }}"
+                                stroke-linecap="round" />
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <span class="text-4xl font-bold text-green-600">{{ "%.1f"|format(completion_rate) }}%</span>
+                        <span class="text-sm text-gray-500">realizadas</span>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center text-sm text-gray-500">
+                {{ visits_completed }} realizadas de {{ non_cancelled }} não canceladas
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============ CORRETORES ============ -->
+<div id="section-brokers" class="section-content hidden">
+    <div class="bg-white rounded-xl shadow-md p-6">
+        <h3 class="text-lg font-bold text-gray-800 mb-4">
+            <i class="fas fa-trophy text-yellow-500 mr-2"></i>
+            Performance dos Corretores
+        </h3>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">#</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Corretor</th>
+                        <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Propostas</th>
+                        <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Aprovadas</th>
+                        <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Visitas</th>
+                        <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Visitas Realizadas</th>
+                        <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Taxa Conversão</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for item in broker_stats %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3">
+                            {% if loop.index <= 3 %}
+                            <span class="flex items-center justify-center w-8 h-8 rounded-full text-white font-bold
+                                {% if loop.index == 1 %}bg-yellow-500
+                                {% elif loop.index == 2 %}bg-gray-400
+                                {% else %}bg-orange-400{% endif %}">
+                                {{ loop.index }}
+                            </span>
+                            {% else %}
+                            <span class="flex items-center justify-center w-8 h-8 bg-gray-200 rounded-full text-gray-600 font-bold">
+                                {{ loop.index }}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-gradient-to-br from-[#0095D0] to-[#004C70] rounded-full flex items-center justify-center text-white">
+                                    <i class="fas fa-user-tie"></i>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-900">{{ item.broker.name }}</p>
+                                    <p class="text-xs text-gray-500">{{ item.broker.email or '' }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-blue-100 text-blue-800">
+                                {{ item.proposals_count }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-green-100 text-green-800">
+                                {{ item.approved_count }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-purple-100 text-purple-800">
+                                {{ item.visits_count }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-orange-100 text-orange-800">
+                                {{ item.completed_visits }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            <div class="flex items-center justify-center">
+                                <div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                                    <div class="h-2 rounded-full {% if item.conversion_rate >= 50 %}bg-green-500{% elif item.conversion_rate >= 25 %}bg-yellow-500{% else %}bg-red-500{% endif %}" style="width: {{ item.conversion_rate }}%"></div>
+                                </div>
+                                <span class="text-sm font-bold {% if item.conversion_rate >= 50 %}text-green-600{% elif item.conversion_rate >= 25 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                                    {{ item.conversion_rate }}%
+                                </span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="px-4 py-8 text-center text-gray-500">
+                            Nenhum corretor cadastrado
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ============ CRM ============ -->
+{% if crm_stats %}
+<div id="section-crm" class="section-content hidden">
+    <!-- Cards CRM -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-[#0095D0]">
+            <p class="text-sm text-gray-500 font-semibold">Total de Leads</p>
+            <p class="text-3xl font-bold text-gray-900">{{ crm_stats.total_leads }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
+            <p class="text-sm text-gray-500 font-semibold">Leads Novos</p>
+            <p class="text-3xl font-bold text-blue-600">{{ crm_stats.leads_new }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
+            <p class="text-sm text-gray-500 font-semibold">Convertidos</p>
+            <p class="text-3xl font-bold text-green-600">{{ crm_stats.leads_converted }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500">
+            <p class="text-sm text-gray-500 font-semibold">Perdidos</p>
+            <p class="text-3xl font-bold text-red-600">{{ crm_stats.leads_lost }}</p>
+        </div>
+    </div>
+
+    <!-- Taxa de Conversão CRM -->
+    <div class="bg-white rounded-xl shadow-md p-6">
+        <h3 class="text-lg font-bold text-gray-800 mb-4">
+            <i class="fas fa-funnel-dollar text-[#0095D0] mr-2"></i>
+            Taxa de Conversão do Funil
+        </h3>
+        <div class="flex items-center justify-center py-8">
+            <div class="relative">
+                <svg class="transform -rotate-90 w-48 h-48">
+                    <circle cx="96" cy="96" r="80" stroke="#e5e7eb" stroke-width="16" fill="none" />
+                    <circle cx="96" cy="96" r="80" stroke="#0095D0" stroke-width="16" fill="none"
+                            stroke-dasharray="{{ 2 * 3.14159 * 80 }}"
+                            stroke-dashoffset="{{ 2 * 3.14159 * 80 * (1 - crm_stats.conversion_rate / 100) }}"
+                            stroke-linecap="round" />
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                    <span class="text-4xl font-bold text-[#0095D0]">{{ crm_stats.conversion_rate }}%</span>
+                    <span class="text-sm text-gray-500">conversão</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Tab Navigation
+function showSection(section) {
+    // Hide all sections
+    document.querySelectorAll('.section-content').forEach(el => el.classList.add('hidden'));
+    // Show selected section
+    document.getElementById('section-' + section).classList.remove('hidden');
+    // Update tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-[#0095D0]', 'text-white');
+        btn.classList.add('bg-gray-100', 'text-gray-700');
+    });
+    document.querySelector(`[data-tab="${section}"]`).classList.remove('bg-gray-100', 'text-gray-700');
+    document.querySelector(`[data-tab="${section}"]`).classList.add('bg-[#0095D0]', 'text-white');
+}
+
+// Views Chart
+const viewsData = {{ views_per_day|tojson }};
+new Chart(document.getElementById('viewsChart'), {
+    type: 'line',
+    data: {
+        labels: viewsData.map(v => {
+            const date = new Date(v[0]);
+            return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+        }),
+        datasets: [{
+            label: 'Visualizações',
+            data: viewsData.map(v => v[1]),
+            borderColor: '#0095D0',
+            backgroundColor: 'rgba(0, 149, 208, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// Users Chart
+const usersData = {{ users_per_day|tojson }};
+new Chart(document.getElementById('usersChart'), {
+    type: 'bar',
+    data: {
+        labels: usersData.map(u => {
+            const date = new Date(u[0]);
+            return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+        }),
+        datasets: [{
+            label: 'Novos Usuários',
+            data: usersData.map(u => u[1]),
+            backgroundColor: '#10b981'
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// Property Type Chart
+const propertyTypes = {{ properties_by_type|tojson }};
+new Chart(document.getElementById('propertyTypeChart'), {
+    type: 'doughnut',
+    data: {
+        labels: propertyTypes.map(p => p[0] || 'Outros'),
+        datasets: [{
+            data: propertyTypes.map(p => p[1]),
+            backgroundColor: ['#0095D0', '#004C70', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4']
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'bottom' }
+        }
+    }
+});
+
+// User Role Chart
+const userRoles = {{ users_by_role|tojson }};
+new Chart(document.getElementById('userRoleChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Admins', 'Corretores', 'Proprietários', 'Clientes'],
+        datasets: [{
+            data: [userRoles.admin, userRoles.broker, userRoles.owner, userRoles.user],
+            backgroundColor: ['#8b5cf6', '#0095D0', '#10b981', '#6b7280']
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'bottom' }
+        }
+    }
+});
+
+// Visits Status Chart
+new Chart(document.getElementById('visitsStatusChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Agendadas', 'Confirmadas', 'Realizadas', 'Canceladas'],
+        datasets: [{
+            data: [{{ visits_scheduled }}, {{ visits_confirmed }}, {{ visits_completed }}, {{ visits_cancelled }}],
+            backgroundColor: ['#3b82f6', '#f59e0b', '#10b981', '#ef4444']
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'bottom' }
+        }
+    }
+});
+</script>
+{% endblock %}

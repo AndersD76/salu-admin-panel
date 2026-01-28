@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Documentos{% endblock %}
+{% block page_title %}Documentos{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow-lg p-4 mb-6">
+    <div class="flex flex-wrap gap-2">
+        <a href="/documentos" class="px-4 py-2 rounded-lg {% if not current_status %}bg-blue-600 text-white{% else %}bg-gray-100 text-gray-700{% endif %} transition">Todos</a>
+        <a href="/documentos?status=pending" class="px-4 py-2 rounded-lg {% if current_status == 'pending' %}bg-orange-600 text-white{% else %}bg-gray-100 text-gray-700{% endif %} transition"><i class="fas fa-clock mr-1"></i> Pendentes</a>
+        <a href="/documentos?status=approved" class="px-4 py-2 rounded-lg {% if current_status == 'approved' %}bg-green-600 text-white{% else %}bg-gray-100 text-gray-700{% endif %} transition"><i class="fas fa-check mr-1"></i> Aprovados</a>
+        <a href="/documentos?status=rejected" class="px-4 py-2 rounded-lg {% if current_status == 'rejected' %}bg-red-600 text-white{% else %}bg-gray-100 text-gray-700{% endif %} transition"><i class="fas fa-times mr-1"></i> Rejeitados</a>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl shadow-lg overflow-hidden">
+    {% if documents %}
+    <table class="w-full">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600">Tipo</th>
+                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600">Proposta</th>
+                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600">Status</th>
+                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600">Data</th>
+                <th class="px-6 py-4 text-center text-sm font-semibold text-gray-600">Acoes</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for item in documents %}
+            <tr class="hover:bg-gray-50 transition">
+                <td class="px-6 py-4">
+                    <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">{{ item.document.document_type.value }}</span>
+                </td>
+                <td class="px-6 py-4">
+                    {% if item.proposal %}
+                    <p class="font-semibold text-gray-900">{{ item.proposal.name }}</p>
+                    <p class="text-sm text-gray-500">{{ item.proposal.email }}</p>
+                    {% else %}
+                    <span class="text-gray-400">-</span>
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4">
+                    {% if item.document.status.value == 'UPLOADED' %}
+                    <span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm">Pendente</span>
+                    {% elif item.document.status.value == 'APPROVED' %}
+                    <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">Aprovado</span>
+                    {% elif item.document.status.value == 'REJECTED' %}
+                    <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm">Rejeitado</span>
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-500">{{ item.document.created_at.strftime('%d/%m/%Y') if item.document.created_at else '-' }}</td>
+                <td class="px-6 py-4 text-center">
+                    <a href="/documento/{{ item.document.id }}" class="inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm"><i class="fas fa-eye mr-1"></i> Ver</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="p-12 text-center">
+        <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-file-upload text-gray-400 text-3xl"></i>
+        </div>
+        <p class="text-gray-500 text-lg">Nenhum documento encontrado</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

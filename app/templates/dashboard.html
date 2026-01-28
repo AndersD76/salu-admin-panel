@@ -1,80 +1,134 @@
 {% extends "base.html" %}
 
 {% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="mb-8">
-    <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
-    <p class="text-gray-600 mt-1">Visão geral do sistema</p>
-</div>
-
-<!-- Stats Cards -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    <div class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-yellow-500">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Card: Propostas Pendentes -->
+    <div class="bg-white rounded-xl shadow-lg p-6">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-gray-500 text-sm font-medium">Propostas Pendentes</p>
-                <p class="text-3xl font-bold text-gray-900 mt-1">{{ stats.pending_proposals }}</p>
+                <p class="text-gray-500 text-sm">Propostas Pendentes</p>
+                <p class="text-3xl font-bold text-orange-600">{{ stats.pending_proposals }}</p>
             </div>
-            <div class="w-14 h-14 bg-yellow-100 rounded-full flex items-center justify-center">
-                <i class="fas fa-clock text-yellow-600 text-2xl"></i>
+            <div class="w-14 h-14 bg-orange-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-clock text-orange-600 text-2xl"></i>
             </div>
         </div>
-        <a href="/propostas?status=pending" class="text-yellow-600 text-sm mt-4 inline-block hover:underline">
-            Ver pendentes <i class="fas fa-arrow-right ml-1"></i>
+        <a href="/propostas?status=pending" class="text-orange-600 text-sm mt-4 inline-block hover:underline">
+            Ver todas <i class="fas fa-arrow-right ml-1"></i>
         </a>
     </div>
 
-    <div class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-green-500">
+    <!-- Card: Documentos Pendentes -->
+    <div class="bg-white rounded-xl shadow-lg p-6">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-gray-500 text-sm font-medium">Propostas Aprovadas</p>
-                <p class="text-3xl font-bold text-gray-900 mt-1">{{ stats.approved_proposals }}</p>
+                <p class="text-gray-500 text-sm">Documentos Pendentes</p>
+                <p class="text-3xl font-bold text-purple-600">{{ stats.pending_documents }}</p>
+            </div>
+            <div class="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-file-upload text-purple-600 text-2xl"></i>
+            </div>
+        </div>
+        <a href="/documentos?status=pending" class="text-purple-600 text-sm mt-4 inline-block hover:underline">
+            Revisar <i class="fas fa-arrow-right ml-1"></i>
+        </a>
+    </div>
+
+    <!-- Card: Visitas Hoje -->
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-sm">Visitas Hoje</p>
+                <p class="text-3xl font-bold text-green-600">{{ stats.today_visits }}</p>
             </div>
             <div class="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center">
-                <i class="fas fa-check text-green-600 text-2xl"></i>
+                <i class="fas fa-calendar text-green-600 text-2xl"></i>
             </div>
         </div>
-        <a href="/propostas?status=approved" class="text-green-600 text-sm mt-4 inline-block hover:underline">
-            Ver aprovadas <i class="fas fa-arrow-right ml-1"></i>
+        <a href="/visitas" class="text-green-600 text-sm mt-4 inline-block hover:underline">
+            Ver agenda <i class="fas fa-arrow-right ml-1"></i>
         </a>
     </div>
 
-    <div class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-blue-500">
+    <!-- Card: Imoveis Ativos -->
+    <div class="bg-white rounded-xl shadow-lg p-6">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-gray-500 text-sm font-medium">Corretores Ativos</p>
-                <p class="text-3xl font-bold text-gray-900 mt-1">{{ stats.total_brokers }}</p>
+                <p class="text-gray-500 text-sm">Imoveis Ativos</p>
+                <p class="text-3xl font-bold text-blue-600">{{ stats.total_properties }}</p>
             </div>
             <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center">
-                <i class="fas fa-user-tie text-blue-600 text-2xl"></i>
+                <i class="fas fa-home text-blue-600 text-2xl"></i>
             </div>
         </div>
-        <a href="/corretores" class="text-blue-600 text-sm mt-4 inline-block hover:underline">
-            Ver corretores <i class="fas fa-arrow-right ml-1"></i>
+        <a href="/imoveis" class="text-blue-600 text-sm mt-4 inline-block hover:underline">
+            Gerenciar <i class="fas fa-arrow-right ml-1"></i>
         </a>
     </div>
 </div>
 
-<!-- Quick Actions -->
-<div class="bg-white rounded-xl p-6 shadow-lg">
-    <h2 class="text-xl font-bold text-gray-900 mb-4">Ações Rápidas</h2>
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <a href="/propostas?status=pending" class="flex flex-col items-center p-4 bg-yellow-50 rounded-xl hover:bg-yellow-100 transition">
-            <i class="fas fa-file-alt text-yellow-600 text-2xl mb-2"></i>
-            <span class="text-sm font-medium text-gray-700">Analisar Propostas</span>
+<!-- Acoes Rapidas -->
+<div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+    <div class="flex items-center justify-between mb-6">
+        <h3 class="text-lg font-semibold text-gray-800">Acoes Rapidas</h3>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <a href="/propostas?status=pending" class="flex items-center p-4 border rounded-lg hover:bg-gray-50 transition">
+            <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mr-4">
+                <i class="fas fa-file-alt text-orange-600"></i>
+            </div>
+            <div>
+                <p class="font-semibold">Analisar Propostas</p>
+                <p class="text-sm text-gray-500">{{ stats.pending_proposals }} aguardando analise</p>
+            </div>
         </a>
-        <a href="/propostas?status=assigned" class="flex flex-col items-center p-4 bg-blue-50 rounded-xl hover:bg-blue-100 transition">
-            <i class="fas fa-tasks text-blue-600 text-2xl mb-2"></i>
-            <span class="text-sm font-medium text-gray-700">Acompanhar</span>
+        <a href="/documentos?status=pending" class="flex items-center p-4 border rounded-lg hover:bg-gray-50 transition">
+            <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mr-4">
+                <i class="fas fa-file-upload text-purple-600"></i>
+            </div>
+            <div>
+                <p class="font-semibold">Revisar Documentos</p>
+                <p class="text-sm text-gray-500">{{ stats.pending_documents }} para revisar</p>
+            </div>
         </a>
-        <a href="/corretores" class="flex flex-col items-center p-4 bg-green-50 rounded-xl hover:bg-green-100 transition">
-            <i class="fas fa-user-plus text-green-600 text-2xl mb-2"></i>
-            <span class="text-sm font-medium text-gray-700">Corretores</span>
+        <a href="/visitas" class="flex items-center p-4 border rounded-lg hover:bg-gray-50 transition">
+            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
+                <i class="fas fa-calendar text-green-600"></i>
+            </div>
+            <div>
+                <p class="font-semibold">Agenda de Visitas</p>
+                <p class="text-sm text-gray-500">{{ stats.today_visits }} visitas hoje</p>
+            </div>
         </a>
-        <a href="#" class="flex flex-col items-center p-4 bg-purple-50 rounded-xl hover:bg-purple-100 transition">
-            <i class="fas fa-chart-bar text-purple-600 text-2xl mb-2"></i>
-            <span class="text-sm font-medium text-gray-700">Relatórios</span>
+        <a href="/usuarios" class="flex items-center p-4 border rounded-lg hover:bg-gray-50 transition">
+            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                <i class="fas fa-user-friends text-blue-600"></i>
+            </div>
+            <div>
+                <p class="font-semibold">Gerenciar Usuarios</p>
+                <p class="text-sm text-gray-500">Clientes, proprietarios, corretores</p>
+            </div>
+        </a>
+        <a href="/imoveis" class="flex items-center p-4 border rounded-lg hover:bg-gray-50 transition">
+            <div class="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center mr-4">
+                <i class="fas fa-home text-teal-600"></i>
+            </div>
+            <div>
+                <p class="font-semibold">Imoveis</p>
+                <p class="text-sm text-gray-500">{{ stats.total_properties }} ativos no portal</p>
+            </div>
+        </a>
+        <a href="/relatorios" class="flex items-center p-4 border rounded-lg hover:bg-gray-50 transition">
+            <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mr-4">
+                <i class="fas fa-chart-bar text-indigo-600"></i>
+            </div>
+            <div>
+                <p class="font-semibold">Relatorios</p>
+                <p class="text-sm text-gray-500">Metricas e performance</p>
+            </div>
         </a>
     </div>
 </div>

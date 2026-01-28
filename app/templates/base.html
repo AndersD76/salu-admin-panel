@@ -5,58 +5,138 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Admin{% endblock %} - Salu Imóveis</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .sidebar { transition: transform 0.3s ease; }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+        }
+        .gradient-salu { background: linear-gradient(135deg, #0095D0 0%, #004C70 100%); }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
-    <!-- Sidebar -->
-    <aside class="fixed left-0 top-0 h-full w-64 bg-gray-900 text-white z-50">
-        <div class="p-6 border-b border-gray-800">
-            <h1 class="text-xl font-bold">
-                <i class="fas fa-building mr-2"></i>Salu Admin
-            </h1>
-        </div>
-
-        <nav class="p-4">
-            <ul class="space-y-2">
-                <li>
-                    <a href="/" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 transition {% if request.url.path == '/' %}bg-gray-800{% endif %}">
-                        <i class="fas fa-chart-line w-6"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/propostas" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 transition {% if 'proposta' in request.url.path %}bg-gray-800{% endif %}">
-                        <i class="fas fa-file-contract w-6"></i>
-                        <span>Propostas</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/corretores" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 transition {% if 'corretor' in request.url.path %}bg-gray-800{% endif %}">
-                        <i class="fas fa-user-tie w-6"></i>
-                        <span>Corretores</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
-
-        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-800">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                    <i class="fas fa-user"></i>
-                </div>
-                <div>
-                    <p class="font-semibold text-sm">Administrador</p>
-                    <p class="text-xs text-gray-400">admin@saluimoveis.com</p>
-                </div>
+<body class="bg-gray-50 min-h-screen">
+    <div class="flex">
+        <!-- Sidebar -->
+        <aside class="sidebar fixed lg:relative w-64 h-screen gradient-salu text-white z-50 shadow-2xl">
+            <div class="p-6 border-b border-white border-opacity-20">
+                <h1 class="text-2xl font-bold flex items-center">
+                    <i class="fas fa-building mr-2"></i>
+                    Salu Admin
+                </h1>
+                <p class="text-xs text-white opacity-75 mt-1">Painel Administrativo</p>
             </div>
-        </div>
-    </aside>
+            <nav class="p-4">
+                <ul class="space-y-2">
+                    <li>
+                        <a href="/" class="flex items-center px-4 py-3 rounded-lg hover:bg-white hover:bg-opacity-10 transition {% if active == 'dashboard' %}bg-white bg-opacity-20{% endif %}">
+                            <i class="fas fa-chart-pie w-5 mr-3"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/propostas" class="flex items-center px-4 py-3 rounded-lg hover:bg-white hover:bg-opacity-10 transition {% if active == 'propostas' %}bg-white bg-opacity-20{% endif %}">
+                            <i class="fas fa-file-alt w-5 mr-3"></i>
+                            Propostas
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/documentos" class="flex items-center px-4 py-3 rounded-lg hover:bg-white hover:bg-opacity-10 transition {% if active == 'documentos' %}bg-white bg-opacity-20{% endif %}">
+                            <i class="fas fa-file-upload w-5 mr-3"></i>
+                            Documentos
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/imoveis" class="flex items-center px-4 py-3 rounded-lg hover:bg-white hover:bg-opacity-10 transition {% if active == 'imoveis' %}bg-white bg-opacity-20{% endif %}">
+                            <i class="fas fa-home w-5 mr-3"></i>
+                            Imóveis
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/visitas" class="flex items-center px-4 py-3 rounded-lg hover:bg-white hover:bg-opacity-10 transition {% if active == 'visitas' %}bg-white bg-opacity-20{% endif %}">
+                            <i class="fas fa-calendar w-5 mr-3"></i>
+                            Visitas
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/usuarios" class="flex items-center px-4 py-3 rounded-lg hover:bg-white hover:bg-opacity-10 transition {% if active == 'usuarios' %}bg-white bg-opacity-20{% endif %}">
+                            <i class="fas fa-user-friends w-5 mr-3"></i>
+                            Usuários
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/corretores" class="flex items-center px-4 py-3 rounded-lg hover:bg-white hover:bg-opacity-10 transition {% if active == 'corretores' %}bg-white bg-opacity-20{% endif %}">
+                            <i class="fas fa-user-tie w-5 mr-3"></i>
+                            Corretores
+                        </a>
+                    </li>
+                    <!-- CRM Section -->
+                    <li class="pt-4 mt-4 border-t border-white border-opacity-20">
+                        <span class="text-xs font-bold uppercase text-white text-opacity-50 px-4">CRM</span>
+                    </li>
+                    <li>
+                        <a href="/crm" class="flex items-center px-4 py-3 rounded-lg hover:bg-white hover:bg-opacity-10 transition {% if active == 'crm_dashboard' %}bg-white bg-opacity-20{% endif %}">
+                            <i class="fas fa-tachometer-alt w-5 mr-3"></i>
+                            Painel CRM
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/crm/leads" class="flex items-center px-4 py-3 rounded-lg hover:bg-white hover:bg-opacity-10 transition {% if active == 'crm_leads' %}bg-white bg-opacity-20{% endif %}">
+                            <i class="fas fa-users w-5 mr-3"></i>
+                            Leads
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/crm/pipeline" class="flex items-center px-4 py-3 rounded-lg hover:bg-white hover:bg-opacity-10 transition {% if active == 'crm_pipeline' %}bg-white bg-opacity-20{% endif %}">
+                            <i class="fas fa-columns w-5 mr-3"></i>
+                            Pipeline
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/crm/tarefas" class="flex items-center px-4 py-3 rounded-lg hover:bg-white hover:bg-opacity-10 transition {% if active == 'crm_tarefas' %}bg-white bg-opacity-20{% endif %}">
+                            <i class="fas fa-tasks w-5 mr-3"></i>
+                            Tarefas
+                        </a>
+                    </li>
+                    <!-- End CRM Section -->
+                    <li class="pt-4 mt-4 border-t border-white border-opacity-20">
+                        <a href="/relatorios" class="flex items-center px-4 py-3 rounded-lg hover:bg-white hover:bg-opacity-10 transition {% if active == 'relatorios' %}bg-white bg-opacity-20{% endif %}">
+                            <i class="fas fa-chart-bar w-5 mr-3"></i>
+                            Relatórios
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
 
-    <!-- Main Content -->
-    <main class="ml-64 p-8">
-        {% block content %}{% endblock %}
-    </main>
+        <!-- Main Content -->
+        <main class="flex-1 lg:ml-0 min-h-screen">
+            <!-- Top Bar -->
+            <header class="bg-white shadow-md px-6 py-4 flex items-center justify-between border-b-2 border-[#0095D0]">
+                <button onclick="toggleSidebar()" class="lg:hidden text-gray-600 hover:text-[#0095D0]">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <h2 class="text-xl font-bold text-gray-800">{% block page_title %}Dashboard{% endblock %}</h2>
+                <div class="flex items-center gap-4">
+                    <span class="text-gray-700 font-semibold">Admin</span>
+                    <div class="w-10 h-10 gradient-salu rounded-full flex items-center justify-center text-white shadow-lg">
+                        <i class="fas fa-user"></i>
+                    </div>
+                </div>
+            </header>
 
-    {% block extra_js %}{% endblock %}
+            <!-- Page Content -->
+            <div class="p-6">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('open');
+        }
+    </script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>

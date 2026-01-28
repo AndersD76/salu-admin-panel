@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block title %}{{ user.name }}{% endblock %}
+{% block page_title %}Detalhes do Usuário{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="/usuarios" class="text-[#0095D0] hover:text-[#004C70] transition">
+        <i class="fas fa-arrow-left mr-2"></i>Voltar para lista
+    </a>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Informações do Usuário -->
+    <div class="lg:col-span-2">
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <div class="flex items-center gap-4 mb-6">
+                {% if user.role.value == 'ADMIN' %}
+                    <div class="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-700 rounded-full flex items-center justify-center text-white shadow-lg">
+                        <i class="fas fa-user-shield text-3xl"></i>
+                    </div>
+                {% elif user.role.value == 'BROKER' %}
+                    <div class="w-20 h-20 bg-gradient-to-br from-[#0095D0] to-[#004C70] rounded-full flex items-center justify-center text-white shadow-lg">
+                        <i class="fas fa-user-tie text-3xl"></i>
+                    </div>
+                {% elif user.role.value == 'OWNER' %}
+                    <div class="w-20 h-20 bg-gradient-to-br from-green-500 to-green-700 rounded-full flex items-center justify-center text-white shadow-lg">
+                        <i class="fas fa-home text-3xl"></i>
+                    </div>
+                {% else %}
+                    <div class="w-20 h-20 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center text-white shadow-lg">
+                        <i class="fas fa-user text-3xl"></i>
+                    </div>
+                {% endif %}
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">{{ user.name }}</h2>
+                    {% if user.role.value == 'ADMIN' %}
+                        <span class="px-4 py-1 rounded-full bg-purple-500 text-white font-bold">
+                            <i class="fas fa-crown mr-1"></i>ADMINISTRADOR
+                        </span>
+                    {% elif user.role.value == 'BROKER' %}
+                        <span class="px-4 py-1 rounded-full bg-[#0095D0] text-white font-bold">
+                            <i class="fas fa-briefcase mr-1"></i>CORRETOR
+                        </span>
+                    {% elif user.role.value == 'OWNER' %}
+                        <span class="px-4 py-1 rounded-full bg-green-500 text-white font-bold">
+                            <i class="fas fa-key mr-1"></i>PROPRIETÁRIO
+                        </span>
+                    {% else %}
+                        <span class="px-4 py-1 rounded-full bg-gray-500 text-white font-bold">
+                            <i class="fas fa-shopping-cart mr-1"></i>CLIENTE
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <p class="text-sm text-gray-500 mb-1">
+                        <i class="fas fa-envelope text-[#0095D0] mr-2"></i>Email
+                    </p>
+                    <p class="font-semibold text-gray-900">{{ user.email }}</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <p class="text-sm text-gray-500 mb-1">
+                        <i class="fas fa-phone text-[#0095D0] mr-2"></i>Telefone
+                    </p>
+                    <p class="font-semibold text-gray-900">{{ user.phone or 'Não informado' }}</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <p class="text-sm text-gray-500 mb-1">
+                        <i class="fas fa-calendar text-[#0095D0] mr-2"></i>Cadastrado em
+                    </p>
+                    <p class="font-semibold text-gray-900">{{ user.created_at.strftime('%d/%m/%Y %H:%M') if user.created_at else 'N/A' }}</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <p class="text-sm text-gray-500 mb-1">
+                        <i class="fas fa-circle text-[#0095D0] mr-2"></i>Status
+                    </p>
+                    {% if user.is_active %}
+                        <span class="px-3 py-1 rounded-full bg-green-100 text-green-800 font-semibold">
+                            <i class="fas fa-check-circle mr-1"></i>Ativo
+                        </span>
+                    {% else %}
+                        <span class="px-3 py-1 rounded-full bg-red-100 text-red-800 font-semibold">
+                            <i class="fas fa-times-circle mr-1"></i>Inativo
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Propostas do Usuário -->
+        {% if proposals %}
+        <div class="bg-white rounded-xl shadow-md p-6 mt-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">
+                <i class="fas fa-file-alt text-[#0095D0] mr-2"></i>Propostas ({{ proposals|length }})
+            </h3>
+            <div class="space-y-3">
+                {% for proposal in proposals %}
+                <a href="/proposta/{{ proposal.id }}" class="block p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="font-semibold text-gray-900">{{ proposal.type.value }}</p>
+                            <p class="text-sm text-gray-500">{{ proposal.created_at.strftime('%d/%m/%Y') if proposal.created_at else 'N/A' }}</p>
+                        </div>
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold
+                            {% if proposal.status.value == 'PENDING' %}bg-orange-100 text-orange-800
+                            {% elif proposal.status.value == 'APPROVED' %}bg-green-100 text-green-800
+                            {% elif proposal.status.value == 'REJECTED' %}bg-red-100 text-red-800
+                            {% else %}bg-blue-100 text-blue-800{% endif %}">
+                            {{ proposal.status.value }}
+                        </span>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="space-y-6">
+        <!-- Ações -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="font-semibold text-gray-800 mb-4">
+                <i class="fas fa-cog text-[#0095D0] mr-2"></i>Ações
+            </h3>
+            <div class="space-y-3">
+                <form action="/usuario/{{ user.id }}/toggle-status" method="POST">
+                    <button type="submit" class="w-full px-4 py-3 {% if user.is_active %}bg-red-500 hover:bg-red-600{% else %}bg-green-500 hover:bg-green-600{% endif %} text-white rounded-lg transition font-semibold cursor-pointer">
+                        <i class="fas fa-{% if user.is_active %}ban{% else %}check{% endif %} mr-2"></i>
+                        {% if user.is_active %}Desativar Usuário{% else %}Ativar Usuário{% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Info do Sistema -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="font-semibold text-gray-800 mb-4">
+                <i class="fas fa-info-circle text-[#0095D0] mr-2"></i>Info
+            </h3>
+            <div class="space-y-3 text-sm">
+                <div>
+                    <p class="text-gray-500">ID</p>
+                    <p class="font-mono text-gray-900 break-all">{{ user.id }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-500">Atualizado em</p>
+                    <p class="text-gray-900">{{ user.updated_at.strftime('%d/%m/%Y %H:%M') if user.updated_at else 'N/A' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

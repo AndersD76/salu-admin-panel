@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block title %}{{ property.title or 'Imóvel' }}{% endblock %}
+{% block page_title %}Detalhes do Imóvel{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="/imoveis" class="text-[#0095D0] hover:text-[#004C70] transition">
+        <i class="fas fa-arrow-left mr-2"></i>Voltar para lista
+    </a>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Informações Principais -->
+    <div class="lg:col-span-2 space-y-6">
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <div class="flex items-start justify-between mb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ property.title or 'Sem título' }}</h2>
+                    <p class="text-gray-600">
+                        <i class="fas fa-map-marker-alt text-[#0095D0] mr-2"></i>
+                        {{ property.city or 'N/A' }} - {{ property.neighborhood or 'N/A' }}
+                    </p>
+                </div>
+                {% if property.is_active %}
+                    <span class="px-4 py-2 rounded-full text-sm font-semibold bg-green-100 text-green-800">
+                        <i class="fas fa-check-circle mr-1"></i>Ativo
+                    </span>
+                {% else %}
+                    <span class="px-4 py-2 rounded-full text-sm font-semibold bg-red-100 text-red-800">
+                        <i class="fas fa-times-circle mr-1"></i>Inativo
+                    </span>
+                {% endif %}
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-gray-50 rounded-lg p-4 text-center">
+                    <i class="fas fa-home text-[#0095D0] text-xl mb-2"></i>
+                    <p class="text-sm text-gray-500">Tipo</p>
+                    <p class="font-bold text-gray-900">{{ property.property_type or 'N/A' }}</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 text-center">
+                    <i class="fas fa-bed text-[#0095D0] text-xl mb-2"></i>
+                    <p class="text-sm text-gray-500">Quartos</p>
+                    <p class="font-bold text-gray-900">{{ property.bedrooms or 0 }}</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 text-center">
+                    <i class="fas fa-bath text-[#0095D0] text-xl mb-2"></i>
+                    <p class="text-sm text-gray-500">Banheiros</p>
+                    <p class="font-bold text-gray-900">{{ property.bathrooms or 0 }}</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 text-center">
+                    <i class="fas fa-car text-[#0095D0] text-xl mb-2"></i>
+                    <p class="text-sm text-gray-500">Vagas</p>
+                    <p class="font-bold text-gray-900">{{ property.parking_spots or 0 }}</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <p class="text-sm text-gray-500 mb-1">Área Total</p>
+                    <p class="font-bold text-gray-900 text-lg">{{ property.total_area or 0 }} m²</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <p class="text-sm text-gray-500 mb-1">Área Útil</p>
+                    <p class="font-bold text-gray-900 text-lg">{{ property.useful_area or 0 }} m²</p>
+                </div>
+            </div>
+
+            {% if property.description %}
+            <div class="border-t border-gray-200 pt-4">
+                <h3 class="font-semibold text-gray-800 mb-2">Descrição</h3>
+                <p class="text-gray-600">{{ property.description }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Endereço -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="font-semibold text-gray-800 mb-4">
+                <i class="fas fa-map-marker-alt text-[#0095D0] mr-2"></i>Endereço
+            </h3>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-sm text-gray-500">Cidade</p>
+                    <p class="font-semibold text-gray-900">{{ property.city or 'N/A' }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Bairro</p>
+                    <p class="font-semibold text-gray-900">{{ property.neighborhood or 'N/A' }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Rua</p>
+                    <p class="font-semibold text-gray-900">{{ property.street or 'N/A' }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">CEP</p>
+                    <p class="font-semibold text-gray-900">{{ property.zip_code or 'N/A' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="space-y-6">
+        <!-- Preços -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="font-semibold text-gray-800 mb-4">
+                <i class="fas fa-tag text-[#0095D0] mr-2"></i>Valores
+            </h3>
+            {% if property.sale_price %}
+            <div class="mb-4 p-4 bg-gradient-to-r from-[#0095D0] to-[#004C70] rounded-lg text-white">
+                <p class="text-sm opacity-80">Venda</p>
+                <p class="text-2xl font-bold">R$ {{ "{:,.2f}".format(property.sale_price).replace(',', 'X').replace('.', ',').replace('X', '.') }}</p>
+            </div>
+            {% endif %}
+            {% if property.rental_price %}
+            <div class="p-4 bg-green-500 rounded-lg text-white">
+                <p class="text-sm opacity-80">Aluguel</p>
+                <p class="text-2xl font-bold">R$ {{ "{:,.2f}".format(property.rental_price).replace(',', 'X').replace('.', ',').replace('X', '.') }}/mês</p>
+            </div>
+            {% endif %}
+            {% if not property.sale_price and not property.rental_price %}
+            <p class="text-gray-500 text-center py-4">Valores não informados</p>
+            {% endif %}
+        </div>
+
+        <!-- Ações -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="font-semibold text-gray-800 mb-4">
+                <i class="fas fa-cog text-[#0095D0] mr-2"></i>Ações
+            </h3>
+            <div class="space-y-3">
+                <form action="/imovel/{{ property.id }}/toggle-status" method="POST">
+                    <button type="submit" class="w-full px-4 py-3 {% if property.is_active %}bg-red-500 hover:bg-red-600{% else %}bg-green-500 hover:bg-green-600{% endif %} text-white rounded-lg transition font-semibold">
+                        <i class="fas fa-{% if property.is_active %}ban{% else %}check{% endif %} mr-2"></i>
+                        {% if property.is_active %}Desativar Imóvel{% else %}Ativar Imóvel{% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Informações do Sistema -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="font-semibold text-gray-800 mb-4">
+                <i class="fas fa-info-circle text-[#0095D0] mr-2"></i>Info
+            </h3>
+            <div class="space-y-3 text-sm">
+                <div>
+                    <p class="text-gray-500">ID</p>
+                    <p class="font-mono text-gray-900 break-all">{{ property.id }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-500">Cadastrado em</p>
+                    <p class="text-gray-900">{{ property.created_at.strftime('%d/%m/%Y %H:%M') if property.created_at else 'N/A' }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-500">Atualizado em</p>
+                    <p class="text-gray-900">{{ property.updated_at.strftime('%d/%m/%Y %H:%M') if property.updated_at else 'N/A' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

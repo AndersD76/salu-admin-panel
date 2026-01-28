@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block title %}Imóveis{% endblock %}
+{% block page_title %}Gestão de Imóveis{% endblock %}
+
+{% block content %}
+<!-- Filtros -->
+<div class="bg-white rounded-xl shadow-md p-4 mb-6">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center gap-2">
+            <span class="text-sm font-semibold text-gray-600 mr-2">Status:</span>
+            <a href="/imoveis" class="px-4 py-2 rounded-lg text-sm font-medium transition {% if not current_status %}bg-[#0095D0] text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                Todos
+            </a>
+            <a href="/imoveis?status=active" class="px-4 py-2 rounded-lg text-sm font-medium transition {% if current_status == 'active' %}bg-green-500 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                Ativos
+            </a>
+            <a href="/imoveis?status=inactive" class="px-4 py-2 rounded-lg text-sm font-medium transition {% if current_status == 'inactive' %}bg-red-500 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                Inativos
+            </a>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="text-sm text-gray-500">{{ properties|length }} imóveis</span>
+        </div>
+    </div>
+</div>
+
+<!-- Ações em Massa -->
+<div id="bulkActions" class="hidden bg-[#0095D0] text-white rounded-xl p-4 mb-4 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+        <span id="selectedCount">0</span> selecionados
+    </div>
+    <div class="flex gap-2">
+        <button onclick="bulkActivate()" class="px-4 py-2 bg-green-500 rounded-lg hover:bg-green-600 text-sm font-medium">
+            <i class="fas fa-check mr-1"></i>Ativar
+        </button>
+        <button onclick="bulkDeactivate()" class="px-4 py-2 bg-red-500 rounded-lg hover:bg-red-600 text-sm font-medium">
+            <i class="fas fa-ban mr-1"></i>Desativar
+        </button>
+    </div>
+</div>
+
+<!-- Tabela -->
+<div class="bg-white rounded-xl shadow-md overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="px-4 py-3 text-left">
+                        <input type="checkbox" id="selectAll" onclick="toggleSelectAll()" class="w-4 h-4 rounded border-gray-300 text-[#0095D0] focus:ring-[#0095D0]">
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Imóvel</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Tipo</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Localização</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Venda</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Aluguel</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Ações</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for property in properties %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-4 py-3">
+                        <input type="checkbox" name="selected" value="{{ property.id }}" onclick="updateSelection()" class="row-checkbox w-4 h-4 rounded border-gray-300 text-[#0095D0] focus:ring-[#0095D0]">
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-gradient-to-br from-[#0095D0] to-[#004C70] rounded-lg flex items-center justify-center text-white">
+                                <i class="fas fa-home"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-900 text-sm">{{ property.title or 'Sem título' }}</p>
+                                <p class="text-xs text-gray-500">{{ property.id[:8] }}...</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium">
+                            {{ property.property_type or 'N/A' }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <p class="text-sm text-gray-900">{{ property.city or 'N/A' }}</p>
+                        <p class="text-xs text-gray-500">{{ property.neighborhood or '' }}</p>
+                    </td>
+                    <td class="px-4 py-3">
+                        {% if property.sale_price %}
+                        <span class="text-sm font-semibold text-green-600">
+                            R$ {{ "{:,.0f}".format(property.sale_price).replace(',', '.') }}
+                        </span>
+                        {% else %}
+                        <span class="text-sm text-gray-400">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3">
+                        {% if property.rental_price %}
+                        <span class="text-sm font-semibold text-blue-600">
+                            R$ {{ "{:,.0f}".format(property.rental_price).replace(',', '.') }}
+                        </span>
+                        {% else %}
+                        <span class="text-sm text-gray-400">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3">
+                        {% if property.is_active %}
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"></span>
+                            Ativo
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                            <span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-1.5"></span>
+                            Inativo
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-1">
+                            <a href="/imovel/{{ property.id }}" class="p-2 text-gray-500 hover:text-[#0095D0] hover:bg-gray-100 rounded-lg transition" title="Ver detalhes">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <form action="/imovel/{{ property.id }}/toggle-status" method="POST" class="inline">
+                                <button type="submit" class="p-2 rounded-lg transition cursor-pointer {% if property.is_active %}text-gray-500 hover:text-red-500 hover:bg-red-50{% else %}text-gray-500 hover:text-green-500 hover:bg-green-50{% endif %}" title="{% if property.is_active %}Desativar{% else %}Ativar{% endif %}">
+                                    <i class="fas fa-{% if property.is_active %}ban{% else %}check{% endif %}"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="px-4 py-12 text-center text-gray-500">
+                        <i class="fas fa-home text-4xl mb-3 text-gray-300"></i>
+                        <p>Nenhum imóvel encontrado</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.row-checkbox');
+    checkboxes.forEach(cb => cb.checked = selectAll.checked);
+    updateSelection();
+}
+
+function updateSelection() {
+    const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+    const bulkActions = document.getElementById('bulkActions');
+    const selectedCount = document.getElementById('selectedCount');
+
+    if (checkboxes.length > 0) {
+        bulkActions.classList.remove('hidden');
+        selectedCount.textContent = checkboxes.length;
+    } else {
+        bulkActions.classList.add('hidden');
+    }
+}
+
+function getSelectedIds() {
+    return Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+}
+
+function bulkActivate() {
+    const ids = getSelectedIds();
+    if (confirm(`Ativar ${ids.length} imóveis?`)) {
+        console.log('Ativar:', ids);
+    }
+}
+
+function bulkDeactivate() {
+    const ids = getSelectedIds();
+    if (confirm(`Desativar ${ids.length} imóveis?`)) {
+        console.log('Desativar:', ids);
+    }
+}
+</script>
+{% endblock %}

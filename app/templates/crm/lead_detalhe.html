@@ -1,0 +1,374 @@
+{% extends "base.html" %}
+{% block title %}Lead - {{ lead.name }}{% endblock %}
+{% block page_title %}Detalhes do Lead{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="/crm/leads" class="text-[#0095D0] hover:underline">
+        <i class="fas fa-arrow-left mr-2"></i>Voltar para Leads
+    </a>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Coluna Principal -->
+    <div class="lg:col-span-2 space-y-6">
+        <!-- Informações do Lead -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <div class="flex items-start justify-between mb-6">
+                <div class="flex items-center gap-4">
+                    <div class="w-16 h-16 bg-gradient-to-r from-[#0095D0] to-[#004C70] rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                        {{ lead.name[0].upper() }}
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">{{ lead.name }}</h2>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="px-3 py-1 rounded-full text-sm font-bold
+                                {% if lead.status == 'NOVO' %}bg-blue-100 text-blue-800
+                                {% elif lead.status == 'QUALIFICADO' %}bg-yellow-100 text-yellow-800
+                                {% elif lead.status == 'CONVERTIDO' %}bg-green-100 text-green-800
+                                {% elif lead.status == 'PERDIDO' %}bg-red-100 text-red-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ lead.status }}
+                            </span>
+                            {% if lead.priority == 'ALTA' %}
+                            <span class="px-3 py-1 rounded-full text-sm font-bold bg-red-100 text-red-800">
+                                <i class="fas fa-exclamation-circle mr-1"></i>Prioridade Alta
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-2">
+                    {% if lead.phone %}
+                    <a href="https://wa.me/55{{ lead.phone|replace(' ', '')|replace('-', '')|replace('(', '')|replace(')', '') }}"
+                       target="_blank"
+                       class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-semibold">
+                        <i class="fab fa-whatsapp mr-2"></i>WhatsApp
+                    </a>
+                    {% endif %}
+                    <button onclick="document.getElementById('modalInteracao').classList.remove('hidden')"
+                            class="px-4 py-2 bg-gradient-to-r from-[#0095D0] to-[#004C70] text-white rounded-lg hover:shadow-lg font-semibold">
+                        <i class="fas fa-plus mr-2"></i>Interação
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <p class="text-xs text-gray-500 mb-1">Email</p>
+                    <p class="text-sm font-medium text-gray-900">{{ lead.email or 'Não informado' }}</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <p class="text-xs text-gray-500 mb-1">Telefone</p>
+                    <p class="text-sm font-medium text-gray-900">{{ lead.phone or 'Não informado' }}</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <p class="text-xs text-gray-500 mb-1">Origem</p>
+                    <p class="text-sm font-medium text-gray-900">{{ lead.source or 'Não informado' }}</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <p class="text-xs text-gray-500 mb-1">Cadastrado em</p>
+                    <p class="text-sm font-medium text-gray-900">{{ lead.created_at.strftime('%d/%m/%Y') if lead.created_at else 'N/A' }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interesse -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">
+                <i class="fas fa-home text-[#0095D0] mr-2"></i>Interesse
+            </h3>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div>
+                    <p class="text-xs text-gray-500 mb-1">Tipo de Interesse</p>
+                    <p class="font-semibold text-gray-900">
+                        {% if lead.interest_type == 'COMPRA' %}
+                        <span class="text-green-600"><i class="fas fa-shopping-cart mr-1"></i>Compra</span>
+                        {% elif lead.interest_type == 'ALUGUEL' %}
+                        <span class="text-blue-600"><i class="fas fa-key mr-1"></i>Aluguel</span>
+                        {% elif lead.interest_type == 'VENDA' %}
+                        <span class="text-purple-600"><i class="fas fa-tag mr-1"></i>Venda</span>
+                        {% else %}
+                        {{ lead.interest_type or 'Não informado' }}
+                        {% endif %}
+                    </p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 mb-1">Tipo de Imóvel</p>
+                    <p class="font-semibold text-gray-900">{{ lead.property_type or 'Não informado' }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 mb-1">Cidade</p>
+                    <p class="font-semibold text-gray-900">{{ lead.city or 'Não informado' }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 mb-1">Bairro</p>
+                    <p class="font-semibold text-gray-900">{{ lead.neighborhood or 'Não informado' }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 mb-1">Orçamento Mínimo</p>
+                    <p class="font-semibold text-gray-900">
+                        {% if lead.budget_min %}
+                        R$ {{ "{:,.2f}".format(lead.budget_min).replace(',', 'X').replace('.', ',').replace('X', '.') }}
+                        {% else %}Não informado{% endif %}
+                    </p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 mb-1">Orçamento Máximo</p>
+                    <p class="font-semibold text-gray-900">
+                        {% if lead.budget_max %}
+                        R$ {{ "{:,.2f}".format(lead.budget_max).replace(',', 'X').replace('.', ',').replace('X', '.') }}
+                        {% else %}Não informado{% endif %}
+                    </p>
+                </div>
+            </div>
+            {% if lead.notes %}
+            <div class="mt-4 pt-4 border-t border-gray-200">
+                <p class="text-xs text-gray-500 mb-1">Observações</p>
+                <p class="text-gray-700">{{ lead.notes }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Histórico de Interações -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-gray-800">
+                    <i class="fas fa-history text-[#0095D0] mr-2"></i>Histórico de Interações
+                </h3>
+                <span class="text-sm text-gray-500">{{ interactions|length }} interações</span>
+            </div>
+
+            <div class="space-y-4">
+                {% for interaction in interactions %}
+                <div class="relative pl-8 pb-4 {% if not loop.last %}border-l-2 border-gray-200{% endif %}">
+                    <div class="absolute left-0 top-0 w-4 h-4 rounded-full -translate-x-1/2
+                        {% if interaction.type == 'LIGACAO' %}bg-blue-500
+                        {% elif interaction.type == 'WHATSAPP' %}bg-green-500
+                        {% elif interaction.type == 'EMAIL' %}bg-purple-500
+                        {% elif interaction.type == 'VISITA' %}bg-orange-500
+                        {% elif interaction.type == 'REUNIAO' %}bg-red-500
+                        {% else %}bg-gray-400{% endif %}">
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                {% if interaction.type == 'LIGACAO' %}
+                                <i class="fas fa-phone text-blue-500"></i>
+                                <span class="font-semibold text-blue-700">Ligação</span>
+                                {% elif interaction.type == 'WHATSAPP' %}
+                                <i class="fab fa-whatsapp text-green-500"></i>
+                                <span class="font-semibold text-green-700">WhatsApp</span>
+                                {% elif interaction.type == 'EMAIL' %}
+                                <i class="fas fa-envelope text-purple-500"></i>
+                                <span class="font-semibold text-purple-700">Email</span>
+                                {% elif interaction.type == 'VISITA' %}
+                                <i class="fas fa-home text-orange-500"></i>
+                                <span class="font-semibold text-orange-700">Visita</span>
+                                {% elif interaction.type == 'REUNIAO' %}
+                                <i class="fas fa-users text-red-500"></i>
+                                <span class="font-semibold text-red-700">Reunião</span>
+                                {% else %}
+                                <i class="fas fa-comment text-gray-500"></i>
+                                <span class="font-semibold text-gray-700">{{ interaction.type }}</span>
+                                {% endif %}
+                            </div>
+                            <span class="text-xs text-gray-500">
+                                {{ interaction.created_at.strftime('%d/%m/%Y às %H:%M') if interaction.created_at else '' }}
+                            </span>
+                        </div>
+                        <p class="text-gray-700">{{ interaction.description }}</p>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-8 text-gray-500">
+                    <i class="fas fa-comments text-4xl mb-3 text-gray-300"></i>
+                    <p>Nenhuma interação registrada</p>
+                    <button onclick="document.getElementById('modalInteracao').classList.remove('hidden')"
+                            class="mt-3 px-4 py-2 bg-[#0095D0] text-white rounded-lg hover:bg-[#004C70] text-sm font-semibold">
+                        <i class="fas fa-plus mr-1"></i>Registrar primeira interação
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="space-y-6">
+        <!-- Ações Rápidas -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Ações</h3>
+            <div class="space-y-3">
+                <form action="/crm/lead/{{ lead.id }}/status" method="POST">
+                    <input type="hidden" name="status" value="QUALIFICADO">
+                    <button type="submit" class="w-full px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 font-semibold text-sm {% if lead.status == 'QUALIFICADO' %}opacity-50 cursor-not-allowed{% endif %}"
+                            {% if lead.status == 'QUALIFICADO' %}disabled{% endif %}>
+                        <i class="fas fa-star mr-2"></i>Qualificar Lead
+                    </button>
+                </form>
+                <form action="/crm/lead/{{ lead.id }}/status" method="POST">
+                    <input type="hidden" name="status" value="CONVERTIDO">
+                    <button type="submit" class="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-semibold text-sm {% if lead.status == 'CONVERTIDO' %}opacity-50 cursor-not-allowed{% endif %}"
+                            {% if lead.status == 'CONVERTIDO' %}disabled{% endif %}>
+                        <i class="fas fa-check-circle mr-2"></i>Marcar como Convertido
+                    </button>
+                </form>
+                <form action="/crm/lead/{{ lead.id }}/status" method="POST">
+                    <input type="hidden" name="status" value="PERDIDO">
+                    <button type="submit" class="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 font-semibold text-sm {% if lead.status == 'PERDIDO' %}opacity-50 cursor-not-allowed{% endif %}"
+                            {% if lead.status == 'PERDIDO' %}disabled{% endif %}>
+                        <i class="fas fa-times-circle mr-2"></i>Marcar como Perdido
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tarefas Relacionadas -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-gray-800">Tarefas</h3>
+                <button onclick="document.getElementById('modalTarefa').classList.remove('hidden')"
+                        class="text-[#0095D0] hover:text-[#004C70] text-sm font-semibold">
+                    <i class="fas fa-plus mr-1"></i>Nova
+                </button>
+            </div>
+            <div class="space-y-2">
+                {% for task in tasks %}
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div class="flex items-center gap-2">
+                        {% if task.status == 'CONCLUIDA' %}
+                        <i class="fas fa-check-circle text-green-500"></i>
+                        {% else %}
+                        <i class="fas fa-clock text-orange-500"></i>
+                        {% endif %}
+                        <span class="text-sm {% if task.status == 'CONCLUIDA' %}line-through text-gray-500{% endif %}">{{ task.title }}</span>
+                    </div>
+                    {% if task.status != 'CONCLUIDA' %}
+                    <form action="/crm/tarefa/{{ task.id }}/concluir" method="POST">
+                        <button type="submit" class="text-green-500 hover:text-green-600">
+                            <i class="fas fa-check"></i>
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+                {% else %}
+                <p class="text-gray-500 text-sm text-center py-4">Nenhuma tarefa</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Corretor Responsável -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Corretor Responsável</h3>
+            {% if lead.broker %}
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-gradient-to-r from-[#0095D0] to-[#004C70] rounded-full flex items-center justify-center text-white font-bold">
+                    {{ lead.broker.name[0].upper() if lead.broker.name else 'C' }}
+                </div>
+                <div>
+                    <p class="font-semibold text-gray-900">{{ lead.broker.name }}</p>
+                    <p class="text-sm text-gray-500">{{ lead.broker.email }}</p>
+                </div>
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-sm">Nenhum corretor atribuído</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nova Interação -->
+<div id="modalInteracao" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+    <div class="bg-white rounded-xl shadow-2xl p-6 max-w-lg w-full mx-4">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-bold text-gray-900">Nova Interação</h3>
+            <button onclick="document.getElementById('modalInteracao').classList.add('hidden')" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <form action="/crm/lead/{{ lead.id }}/interacao" method="POST" class="space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Tipo de Interação *</label>
+                <select name="type" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0095D0]">
+                    <option value="LIGACAO">Ligação</option>
+                    <option value="WHATSAPP">WhatsApp</option>
+                    <option value="EMAIL">Email</option>
+                    <option value="VISITA">Visita</option>
+                    <option value="REUNIAO">Reunião</option>
+                    <option value="OUTRO">Outro</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Descrição *</label>
+                <textarea name="description" required rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0095D0]" placeholder="Descreva a interação..."></textarea>
+            </div>
+            <div class="flex gap-3 pt-4">
+                <button type="button" onclick="document.getElementById('modalInteracao').classList.add('hidden')" class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-semibold">
+                    Cancelar
+                </button>
+                <button type="submit" class="flex-1 px-4 py-2 bg-gradient-to-r from-[#0095D0] to-[#004C70] text-white rounded-lg hover:shadow-lg font-semibold">
+                    Registrar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Nova Tarefa -->
+<div id="modalTarefa" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+    <div class="bg-white rounded-xl shadow-2xl p-6 max-w-lg w-full mx-4">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-bold text-gray-900">Nova Tarefa</h3>
+            <button onclick="document.getElementById('modalTarefa').classList.add('hidden')" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <form action="/crm/tarefa/nova" method="POST" class="space-y-4">
+            <input type="hidden" name="lead_id" value="{{ lead.id }}">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Título *</label>
+                <input type="text" name="title" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0095D0]">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Descrição</label>
+                <textarea name="description" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0095D0]"></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Tipo</label>
+                    <select name="type" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0095D0]">
+                        <option value="LIGACAO">Ligação</option>
+                        <option value="WHATSAPP">WhatsApp</option>
+                        <option value="EMAIL">Email</option>
+                        <option value="VISITA">Visita</option>
+                        <option value="REUNIAO">Reunião</option>
+                        <option value="FOLLOW_UP">Follow-up</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Prioridade</label>
+                    <select name="priority" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0095D0]">
+                        <option value="NORMAL">Normal</option>
+                        <option value="ALTA">Alta</option>
+                        <option value="BAIXA">Baixa</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Data/Hora</label>
+                <input type="datetime-local" name="due_date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0095D0]">
+            </div>
+            <div class="flex gap-3 pt-4">
+                <button type="button" onclick="document.getElementById('modalTarefa').classList.add('hidden')" class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-semibold">
+                    Cancelar
+                </button>
+                <button type="submit" class="flex-1 px-4 py-2 bg-gradient-to-r from-[#0095D0] to-[#004C70] text-white rounded-lg hover:shadow-lg font-semibold">
+                    Criar Tarefa
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

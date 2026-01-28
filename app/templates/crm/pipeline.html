@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% block title %}Pipeline{% endblock %}
+{% block page_title %}CRM - Pipeline de Vendas{% endblock %}
+
+{% block content %}
+<!-- Estatísticas do Pipeline -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-xl shadow-md p-4 border-l-4 border-blue-500">
+        <p class="text-gray-500 text-sm">Leads Ativos</p>
+        <p class="text-2xl font-bold text-blue-600">{{ total_leads }}</p>
+    </div>
+    <div class="bg-white rounded-xl shadow-md p-4 border-l-4 border-yellow-500">
+        <p class="text-gray-500 text-sm">Em Negociação</p>
+        <p class="text-2xl font-bold text-yellow-600">{{ leads_negociacao }}</p>
+    </div>
+    <div class="bg-white rounded-xl shadow-md p-4 border-l-4 border-green-500">
+        <p class="text-gray-500 text-sm">Fechados (Mês)</p>
+        <p class="text-2xl font-bold text-green-600">{{ leads_fechados }}</p>
+    </div>
+    <div class="bg-white rounded-xl shadow-md p-4 border-l-4 border-purple-500">
+        <p class="text-gray-500 text-sm">Taxa Conversão</p>
+        <p class="text-2xl font-bold text-purple-600">{{ taxa_conversao }}%</p>
+    </div>
+</div>
+
+<!-- Pipeline Kanban -->
+<div class="overflow-x-auto pb-4">
+    <div class="flex gap-4 min-w-max">
+        {% for stage in stages %}
+        <div class="w-72 flex-shrink-0">
+            <!-- Header da Coluna -->
+            <div class="bg-gradient-to-r from-[#0095D0] to-[#004C70] text-white rounded-t-xl p-3 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    {% if stage.name == 'Novo Lead' %}
+                    <i class="fas fa-user-plus"></i>
+                    {% elif stage.name == 'Primeiro Contato' %}
+                    <i class="fas fa-phone"></i>
+                    {% elif stage.name == 'Qualificado' %}
+                    <i class="fas fa-star"></i>
+                    {% elif stage.name == 'Visita Agendada' %}
+                    <i class="fas fa-calendar-check"></i>
+                    {% elif stage.name == 'Proposta Enviada' %}
+                    <i class="fas fa-file-invoice"></i>
+                    {% elif stage.name == 'Negociação' %}
+                    <i class="fas fa-handshake"></i>
+                    {% elif stage.name == 'Fechado Ganho' %}
+                    <i class="fas fa-trophy"></i>
+                    {% elif stage.name == 'Fechado Perdido' %}
+                    <i class="fas fa-times-circle"></i>
+                    {% else %}
+                    <i class="fas fa-folder"></i>
+                    {% endif %}
+                    <span class="font-semibold text-sm">{{ stage.name }}</span>
+                </div>
+                <span class="bg-white text-[#0095D0] text-xs font-bold px-2 py-1 rounded-full">
+                    {{ stage.leads|length }}
+                </span>
+            </div>
+
+            <!-- Cards da Coluna -->
+            <div class="bg-gray-100 rounded-b-xl p-3 min-h-[400px] space-y-3"
+                 ondragover="allowDrop(event)"
+                 ondrop="drop(event, '{{ stage.id }}')"
+                 data-stage-id="{{ stage.id }}">
+
+                {% for lead in stage.leads %}
+                <div class="bg-white rounded-lg shadow-sm p-4 cursor-pointer hover:shadow-md transition border-l-4
+                    {% if lead.interest_type == 'COMPRA' %}border-green-500
+                    {% elif lead.interest_type == 'ALUGUEL' %}border-blue-500
+                    {% else %}border-gray-300{% endif %}"
+                    draggable="true"
+                    ondragstart="drag(event, '{{ lead.id }}')"
+                    id="lead-{{ lead.id }}"
+                    onclick="window.location.href='/crm/lead/{{ lead.id }}'">
+
+                    <div class="flex items-start justify-between mb-2">
+                        <h4 class="font-semibold text-gray-900 text-sm">{{ lead.name }}</h4>
+                        {% if lead.priority == 'ALTA' %}
+                        <span class="px-2 py-0.5 bg-red-100 text-red-800 rounded text-xs font-bold">!</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="space-y-1 text-xs text-gray-500">
+                        {% if lead.phone %}
+                        <p><i class="fas fa-phone mr-1"></i>{{ lead.phone }}</p>
+                        {% endif %}
+                        {% if lead.interest_type %}
+                        <p>
+                            <i class="fas fa-tag mr-1"></i>
+                            {% if lead.interest_type == 'COMPRA' %}Compra
+                            {% elif lead.interest_type == 'ALUGUEL' %}Aluguel
+                            {% else %}{{ lead.interest_type }}{% endif %}
+                        </p>
+                        {% endif %}
+                        {% if lead.city %}
+                        <p><i class="fas fa-map-marker-alt mr-1"></i>{{ lead.city }}</p>
+                        {% endif %}
+                    </div>
+
+                    {% if lead.budget_max %}
+                    <div class="mt-2 pt-2 border-t border-gray-100">
+                        <p class="text-xs font-semibold text-green-600">
+                            <i class="fas fa-dollar-sign mr-1"></i>
+                            Até R$ {{ "{:,.0f}".format(lead.budget_max).replace(',', '.') }}
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    <div class="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between">
+                        <span class="text-xs text-gray-400">
+                            {{ lead.created_at.strftime('%d/%m') if lead.created_at else '' }}
+                        </span>
+                        <div class="flex gap-1">
+                            {% if lead.phone %}
+                            <a href="https://wa.me/55{{ lead.phone|replace(' ', '')|replace('-', '')|replace('(', '')|replace(')', '') }}"
+                               target="_blank"
+                               onclick="event.stopPropagation()"
+                               class="w-6 h-6 flex items-center justify-center rounded bg-green-500 text-white text-xs hover:bg-green-600">
+                                <i class="fab fa-whatsapp"></i>
+                            </a>
+                            {% endif %}
+                            <a href="/crm/lead/{{ lead.id }}"
+                               onclick="event.stopPropagation()"
+                               class="w-6 h-6 flex items-center justify-center rounded bg-[#0095D0] text-white text-xs hover:bg-[#004C70]">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                {% if not stage.leads %}
+                <div class="text-center py-8 text-gray-400">
+                    <i class="fas fa-inbox text-2xl mb-2"></i>
+                    <p class="text-sm">Nenhum lead</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Legenda -->
+<div class="mt-4 flex flex-wrap gap-4 text-sm text-gray-600">
+    <div class="flex items-center gap-2">
+        <div class="w-4 h-4 bg-green-500 rounded"></div>
+        <span>Compra</span>
+    </div>
+    <div class="flex items-center gap-2">
+        <div class="w-4 h-4 bg-blue-500 rounded"></div>
+        <span>Aluguel</span>
+    </div>
+    <div class="flex items-center gap-2">
+        <div class="w-4 h-4 bg-gray-300 rounded"></div>
+        <span>Outro</span>
+    </div>
+</div>
+
+<script>
+function allowDrop(ev) {
+    ev.preventDefault();
+    ev.currentTarget.classList.add('bg-blue-50');
+}
+
+function drag(ev, leadId) {
+    ev.dataTransfer.setData("leadId", leadId);
+}
+
+function drop(ev, stageId) {
+    ev.preventDefault();
+    ev.currentTarget.classList.remove('bg-blue-50');
+
+    const leadId = ev.dataTransfer.getData("leadId");
+
+    // Envia requisição para atualizar o stage do lead
+    fetch(`/crm/lead/${leadId}/stage`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `stage_id=${stageId}`
+    })
+    .then(response => {
+        if (response.ok) {
+            // Recarrega a página para mostrar as mudanças
+            window.location.reload();
+        } else {
+            alert('Erro ao mover lead');
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao mover lead');
+    });
+}
+
+// Remove highlight quando sai da área
+document.querySelectorAll('[data-stage-id]').forEach(col => {
+    col.addEventListener('dragleave', function(e) {
+        this.classList.remove('bg-blue-50');
+    });
+});
+</script>
+{% endblock %}

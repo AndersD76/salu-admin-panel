@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% block title %}Usuários{% endblock %}
+{% block page_title %}Gestão de Usuários{% endblock %}
+
+{% block content %}
+<!-- Filtros -->
+<div class="bg-white rounded-xl shadow-md p-4 mb-6">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center gap-2">
+            <span class="text-sm font-semibold text-gray-600 mr-2">Tipo:</span>
+            <a href="/usuarios" class="px-4 py-2 rounded-lg text-sm font-medium transition {% if not current_role %}bg-[#0095D0] text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                Todos
+            </a>
+            <a href="/usuarios?role=admin" class="px-4 py-2 rounded-lg text-sm font-medium transition {% if current_role == 'admin' %}bg-purple-500 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                <i class="fas fa-crown mr-1"></i>Admins
+            </a>
+            <a href="/usuarios?role=broker" class="px-4 py-2 rounded-lg text-sm font-medium transition {% if current_role == 'broker' %}bg-blue-500 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                <i class="fas fa-user-tie mr-1"></i>Corretores
+            </a>
+            <a href="/usuarios?role=owner" class="px-4 py-2 rounded-lg text-sm font-medium transition {% if current_role == 'owner' %}bg-green-500 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                <i class="fas fa-home mr-1"></i>Proprietários
+            </a>
+            <a href="/usuarios?role=user" class="px-4 py-2 rounded-lg text-sm font-medium transition {% if current_role == 'user' %}bg-gray-500 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                <i class="fas fa-user mr-1"></i>Clientes
+            </a>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="text-sm text-gray-500">{{ users|length }} usuários</span>
+        </div>
+    </div>
+</div>
+
+<!-- Ações em Massa -->
+<div id="bulkActions" class="hidden bg-[#0095D0] text-white rounded-xl p-4 mb-4 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+        <span id="selectedCount">0</span> selecionados
+    </div>
+    <div class="flex gap-2">
+        <button onclick="bulkActivate()" class="px-4 py-2 bg-green-500 rounded-lg hover:bg-green-600 text-sm font-medium">
+            <i class="fas fa-check mr-1"></i>Ativar
+        </button>
+        <button onclick="bulkDeactivate()" class="px-4 py-2 bg-red-500 rounded-lg hover:bg-red-600 text-sm font-medium">
+            <i class="fas fa-ban mr-1"></i>Desativar
+        </button>
+    </div>
+</div>
+
+<!-- Tabela -->
+<div class="bg-white rounded-xl shadow-md overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="px-4 py-3 text-left">
+                        <input type="checkbox" id="selectAll" onclick="toggleSelectAll()" class="w-4 h-4 rounded border-gray-300 text-[#0095D0] focus:ring-[#0095D0]">
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Usuário</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Tipo</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Email</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Telefone</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Cadastro</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Ações</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for user in users %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-4 py-3">
+                        <input type="checkbox" name="selected" value="{{ user.id }}" onclick="updateSelection()" class="row-checkbox w-4 h-4 rounded border-gray-300 text-[#0095D0] focus:ring-[#0095D0]">
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-3">
+                            {% if user.role.value == 'ADMIN' %}
+                            <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-700 rounded-full flex items-center justify-center text-white">
+                                <i class="fas fa-user-shield"></i>
+                            </div>
+                            {% elif user.role.value == 'BROKER' %}
+                            <div class="w-10 h-10 bg-gradient-to-br from-[#0095D0] to-[#004C70] rounded-full flex items-center justify-center text-white">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            {% elif user.role.value == 'OWNER' %}
+                            <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-green-700 rounded-full flex items-center justify-center text-white">
+                                <i class="fas fa-home"></i>
+                            </div>
+                            {% else %}
+                            <div class="w-10 h-10 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center text-white">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            {% endif %}
+                            <span class="font-medium text-gray-900">{{ user.name }}</span>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3">
+                        {% if user.role.value == 'ADMIN' %}
+                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">Admin</span>
+                        {% elif user.role.value == 'BROKER' %}
+                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Corretor</span>
+                        {% elif user.role.value == 'OWNER' %}
+                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Proprietário</span>
+                        {% else %}
+                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Cliente</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-600">{{ user.email }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-600">{{ user.phone or '-' }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-600">{{ user.created_at.strftime('%d/%m/%Y') if user.created_at else 'N/A' }}</td>
+                    <td class="px-4 py-3">
+                        {% if user.is_active %}
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"></span>
+                            Ativo
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            <span class="w-1.5 h-1.5 bg-red-500 rounded-full mr-1.5"></span>
+                            Inativo
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-1">
+                            <a href="/usuario/{{ user.id }}" class="p-2 text-gray-500 hover:text-[#0095D0] hover:bg-gray-100 rounded-lg transition" title="Ver detalhes">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <form action="/usuario/{{ user.id }}/toggle-status" method="POST" class="inline">
+                                <button type="submit" class="p-2 rounded-lg transition cursor-pointer {% if user.is_active %}text-gray-500 hover:text-red-500 hover:bg-red-50{% else %}text-gray-500 hover:text-green-500 hover:bg-green-50{% endif %}" title="{% if user.is_active %}Desativar{% else %}Ativar{% endif %}">
+                                    <i class="fas fa-{% if user.is_active %}ban{% else %}check{% endif %}"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="px-4 py-12 text-center text-gray-500">
+                        <i class="fas fa-users text-4xl mb-3 text-gray-300"></i>
+                        <p>Nenhum usuário encontrado</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.row-checkbox');
+    checkboxes.forEach(cb => cb.checked = selectAll.checked);
+    updateSelection();
+}
+
+function updateSelection() {
+    const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+    const bulkActions = document.getElementById('bulkActions');
+    const selectedCount = document.getElementById('selectedCount');
+
+    if (checkboxes.length > 0) {
+        bulkActions.classList.remove('hidden');
+        selectedCount.textContent = checkboxes.length;
+    } else {
+        bulkActions.classList.add('hidden');
+    }
+}
+
+function getSelectedIds() {
+    return Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+}
+
+function bulkActivate() {
+    const ids = getSelectedIds();
+    if (confirm(`Ativar ${ids.length} usuários?`)) {
+        console.log('Ativar:', ids);
+    }
+}
+
+function bulkDeactivate() {
+    const ids = getSelectedIds();
+    if (confirm(`Desativar ${ids.length} usuários?`)) {
+        console.log('Desativar:', ids);
+    }
+}
+</script>
+{% endblock %}
