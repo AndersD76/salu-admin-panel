@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block title %}Empreendimentos{% endblock %}
+{% block page_title %}Gestão de Empreendimentos{% endblock %}
+
+{% block content %}
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white rounded-xl shadow-md p-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-500">Total</p>
+                <p class="text-2xl font-bold text-gray-900">{{ stats.total }}</p>
+            </div>
+            <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                <i class="fas fa-building text-blue-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl shadow-md p-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-500">Ativos</p>
+                <p class="text-2xl font-bold text-green-600">{{ stats.active }}</p>
+            </div>
+            <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                <i class="fas fa-check-circle text-green-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl shadow-md p-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-500">Em Destaque</p>
+                <p class="text-2xl font-bold text-yellow-600">{{ stats.featured }}</p>
+            </div>
+            <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
+                <i class="fas fa-star text-yellow-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="bg-white rounded-xl shadow-md p-4 mb-6">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center gap-2">
+            <span class="text-sm font-semibold text-gray-600 mr-2">Status:</span>
+            <a href="/empreendimentos" class="px-4 py-2 rounded-lg text-sm font-medium transition {% if not current_status %}bg-[#0095D0] text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                Todos
+            </a>
+            <a href="/empreendimentos?status=active" class="px-4 py-2 rounded-lg text-sm font-medium transition {% if current_status == 'active' %}bg-green-500 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                Ativos
+            </a>
+            <a href="/empreendimentos?status=inactive" class="px-4 py-2 rounded-lg text-sm font-medium transition {% if current_status == 'inactive' %}bg-red-500 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                Inativos
+            </a>
+            <a href="/empreendimentos?status=featured" class="px-4 py-2 rounded-lg text-sm font-medium transition {% if current_status == 'featured' %}bg-yellow-500 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                <i class="fas fa-star mr-1"></i>Destaque
+            </a>
+        </div>
+
+        <!-- Filtro por cidade -->
+        {% if cities %}
+        <div class="flex items-center gap-2">
+            <select onchange="window.location.href='/empreendimentos?city=' + this.value" class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0095D0]">
+                <option value="">Todas as cidades</option>
+                {% for city in cities %}
+                <option value="{{ city }}" {% if current_city == city %}selected{% endif %}>{{ city }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Tabela -->
+<div class="bg-white rounded-xl shadow-md overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Empreendimento</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Tipo</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Localização</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Unidades</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Imóveis</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Ações</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for building in buildings %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-gradient-to-br from-[#0095D0] to-[#004C70] rounded-lg flex items-center justify-center text-white">
+                                <i class="fas fa-building"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-900 text-sm">{{ building.name }}</p>
+                                <p class="text-xs text-gray-500">{{ building.external_code or building.id[:8] }}...</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium">
+                            {{ building.building_type or 'N/A' }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <p class="text-sm text-gray-900">{{ building.city or 'N/A' }}</p>
+                        <p class="text-xs text-gray-500">{{ building.neighborhood or '' }}</p>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="text-sm text-gray-700">{{ building.total_units or 0 }}</span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="text-sm font-semibold text-[#0095D0]">{{ building.property_count or 0 }}</span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="flex flex-col gap-1">
+                            {% if building.is_active %}
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"></span>
+                                Ativo
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                <span class="w-1.5 h-1.5 bg-gray-400 rounded-full mr-1.5"></span>
+                                Inativo
+                            </span>
+                            {% endif %}
+                            {% if building.is_featured %}
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                <i class="fas fa-star text-yellow-500 mr-1"></i>
+                                Destaque
+                            </span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-1">
+                            <a href="/empreendimento/{{ building.id }}" class="p-2 text-gray-500 hover:text-[#0095D0] hover:bg-gray-100 rounded-lg transition" title="Ver detalhes">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <form action="/empreendimento/{{ building.id }}/toggle-featured" method="POST" class="inline">
+                                <button type="submit" class="p-2 rounded-lg transition cursor-pointer {% if building.is_featured %}text-yellow-500 hover:text-gray-500 hover:bg-gray-100{% else %}text-gray-500 hover:text-yellow-500 hover:bg-yellow-50{% endif %}" title="{% if building.is_featured %}Remover destaque{% else %}Destacar{% endif %}">
+                                    <i class="fas fa-star"></i>
+                                </button>
+                            </form>
+                            <form action="/empreendimento/{{ building.id }}/toggle-status" method="POST" class="inline">
+                                <button type="submit" class="p-2 rounded-lg transition cursor-pointer {% if building.is_active %}text-gray-500 hover:text-red-500 hover:bg-red-50{% else %}text-gray-500 hover:text-green-500 hover:bg-green-50{% endif %}" title="{% if building.is_active %}Desativar{% else %}Ativar{% endif %}">
+                                    <i class="fas fa-{% if building.is_active %}ban{% else %}check{% endif %}"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="px-4 py-12 text-center text-gray-500">
+                        <i class="fas fa-building text-4xl mb-3 text-gray-300"></i>
+                        <p>Nenhum empreendimento encontrado</p>
+                        <p class="text-sm mt-2">Execute o script de importação para carregar os dados</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

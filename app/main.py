@@ -171,13 +171,17 @@ class Visit(Base):
 class User(Base):
     __tablename__ = "users"
     id = Column(String, primary_key=True)
-    name = Column(String, nullable=False)
+    name = Column(String, nullable=True)
     email = Column(String, nullable=False, unique=True)
+    email_verified = Column(DateTime, nullable=True)
+    password = Column(String, nullable=True)
+    image = Column(String, nullable=True)
     phone = Column(String, nullable=True)
-    role = Column(SQLEnum(UserRole), default=UserRole.USER)
+    cpf = Column(String, nullable=True)
+    role = Column(SQLEnum(UserRole), default=UserRole.USER, nullable=False)
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
 
 class PropertyView(Base):
@@ -211,6 +215,78 @@ class Contact(Base):
     type = Column(String, nullable=True)
     status = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+# Building Models (espelho do portal)
+class Building(Base):
+    __tablename__ = "buildings"
+    id = Column(String, primary_key=True)
+    external_code = Column(String, nullable=True)
+    name = Column(String, nullable=False)
+    building_type = Column(String, nullable=True)
+    street_type = Column(String, nullable=True)
+    address = Column(String, nullable=True)
+    number = Column(String, nullable=True)
+    city = Column(String, nullable=True)
+    neighborhood = Column(String, nullable=True)
+    state = Column(String, nullable=True)
+    zip_code = Column(String, nullable=True)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    total_floors = Column(Integer, default=0)
+    total_units = Column(Integer, default=0)
+    construction_year = Column(Integer, nullable=True)
+    builder = Column(String, nullable=True)
+    developer = Column(String, nullable=True)
+    architect = Column(String, nullable=True)
+    phase = Column(String, nullable=True)
+    description = Column(Text, nullable=True)
+    website = Column(String, nullable=True)
+    min_price = Column(Float, nullable=True)
+    max_price = Column(Float, nullable=True)
+    is_active = Column(Boolean, default=True)
+    is_featured = Column(Boolean, default=False)
+    property_count = Column(Integer, default=0)
+    view_count = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow)
+
+
+class BuildingPhoto(Base):
+    __tablename__ = "building_photos"
+    id = Column(String, primary_key=True)
+    building_id = Column(String, nullable=False)
+    url = Column(String, nullable=False)
+    thumbnail_url = Column(String, nullable=True)
+    photo_type = Column(String, nullable=True)
+    caption = Column(String, nullable=True)
+    is_primary = Column(Boolean, default=False)
+    order = Column(Integer, default=0)
+
+
+class BuildingAmenity(Base):
+    __tablename__ = "building_amenities"
+    id = Column(String, primary_key=True)
+    building_id = Column(String, nullable=False)
+    amenity_name = Column(String, nullable=False)
+    amenity_value = Column(String, nullable=True)
+    amenity_type = Column(String, nullable=True)
+
+
+class BuildingUnit(Base):
+    __tablename__ = "building_units"
+    id = Column(String, primary_key=True)
+    building_id = Column(String, nullable=False)
+    unit_type = Column(String, nullable=True)
+    bedrooms = Column(Integer, default=0)
+    suites = Column(Integer, default=0)
+    bathrooms = Column(Integer, default=0)
+    parking_covered = Column(Integer, default=0)
+    private_area = Column(Float, nullable=True)
+    total_area = Column(Float, nullable=True)
+    for_sale = Column(Boolean, default=True)
+    for_rent = Column(Boolean, default=False)
+    price = Column(Float, nullable=True)
 
 
 # App
@@ -888,6 +964,177 @@ async def reports(request: Request, db: Session = Depends(get_db)):
         "broker_stats": broker_stats[:10],
         "crm_stats": crm_stats
     })
+
+
+# ===== EMPREENDIMENTOS =====
+
+@app.get("/empreendimentos", response_class=HTMLResponse)
+async def buildings_list(
+    request: Request,
+    status: str = None,
+    city: str = None,
+    db: Session = Depends(get_db)
+):
+    """Lista de empreendimentos"""
+    query = db.query(Building)
+
+    if status == "active":
+        query = query.filter(Building.is_active.is_(True))
+    elif status == "inactive":
+        query = query.filter(Building.is_active.is_(False))
+    elif status == "featured":
+        query = query.filter(Building.is_featured.is_(True))
+
+    if city:
+        query = query.filter(Building.city.ilike(f'%{city}%'))
+
+    buildings = query.order_by(Building.name).all()
+
+    # Get cities for filter
+    cities = db.query(Building.city).filter(
+        Building.city.isnot(None)
+    ).distinct().order_by(Building.city).all()
+    cities = [c[0] for c in cities if c[0]]
+
+    # Get stats
+    total_buildings = db.query(Building).count()
+    active_buildings = db.query(Building).filter(Building.is_active.is_(True)).count()
+    featured_buildings = db.query(Building).filter(Building.is_featured.is_(True)).count()
+
+    return templates.TemplateResponse("empreendimentos.html", {
+        "request": request,
+        "buildings": buildings,
+        "cities": cities,
+        "current_status": status,
+        "current_city": city,
+        "stats": {
+            "total": total_buildings,
+            "active": active_buildings,
+            "featured": featured_buildings
+        }
+    })
+
+
+@app.get("/empreendimento/{building_id}", response_class=HTMLResponse)
+async def building_detail(
+    request: Request,
+    building_id: str,
+    db: Session = Depends(get_db)
+):
+    """Detalhes do empreendimento"""
+    building = db.query(Building).filter(Building.id == building_id).first()
+    if not building:
+        raise HTTPException(status_code=404, detail="Empreendimento não encontrado")
+
+    # Get photos
+    photos = db.query(BuildingPhoto).filter(
+        BuildingPhoto.building_id == building_id
+    ).order_by(BuildingPhoto.order).all()
+
+    # Get amenities
+    amenities = db.query(BuildingAmenity).filter(
+        BuildingAmenity.building_id == building_id
+    ).all()
+
+    # Get units
+    units = db.query(BuildingUnit).filter(
+        BuildingUnit.building_id == building_id
+    ).all()
+
+    # Get properties in this building
+    properties = db.query(Property).filter(
+        Property.is_active.is_(True)
+    ).limit(10).all()  # Simplified - would need building_id on Property
+
+    return templates.TemplateResponse("empreendimento_detalhe.html", {
+        "request": request,
+        "building": building,
+        "photos": photos,
+        "amenities": amenities,
+        "units": units,
+        "properties": properties
+    })
+
+
+@app.post("/empreendimento/{building_id}/toggle-status")
+async def toggle_building_status(
+    building_id: str,
+    db: Session = Depends(get_db)
+):
+    """Ativar/Desativar empreendimento"""
+    building = db.query(Building).filter(Building.id == building_id).first()
+    if not building:
+        raise HTTPException(status_code=404, detail="Empreendimento não encontrado")
+
+    building.is_active = not building.is_active
+    building.updated_at = datetime.utcnow()
+
+    db.commit()
+
+    return RedirectResponse(url="/empreendimentos", status_code=303)
+
+
+@app.post("/empreendimento/{building_id}/toggle-featured")
+async def toggle_building_featured(
+    building_id: str,
+    db: Session = Depends(get_db)
+):
+    """Destacar/Remover destaque do empreendimento"""
+    building = db.query(Building).filter(Building.id == building_id).first()
+    if not building:
+        raise HTTPException(status_code=404, detail="Empreendimento não encontrado")
+
+    building.is_featured = not building.is_featured
+    building.updated_at = datetime.utcnow()
+
+    db.commit()
+
+    return RedirectResponse(url="/empreendimentos", status_code=303)
+
+
+@app.post("/empreendimento/{building_id}/editar")
+async def update_building(
+    building_id: str,
+    name: str = Form(...),
+    building_type: str = Form(None),
+    description: str = Form(None),
+    address: str = Form(None),
+    city: str = Form(None),
+    neighborhood: str = Form(None),
+    state: str = Form(None),
+    total_floors: int = Form(0),
+    total_units: int = Form(0),
+    construction_year: int = Form(None),
+    builder: str = Form(None),
+    developer: str = Form(None),
+    min_price: float = Form(None),
+    max_price: float = Form(None),
+    db: Session = Depends(get_db)
+):
+    """Atualizar empreendimento"""
+    building = db.query(Building).filter(Building.id == building_id).first()
+    if not building:
+        raise HTTPException(status_code=404, detail="Empreendimento não encontrado")
+
+    building.name = name
+    building.building_type = building_type
+    building.description = description
+    building.address = address
+    building.city = city
+    building.neighborhood = neighborhood
+    building.state = state
+    building.total_floors = total_floors or 0
+    building.total_units = total_units or 0
+    building.construction_year = construction_year
+    building.builder = builder
+    building.developer = developer
+    building.min_price = min_price
+    building.max_price = max_price
+    building.updated_at = datetime.utcnow()
+
+    db.commit()
+
+    return RedirectResponse(url=f"/empreendimento/{building_id}", status_code=303)
 
 
 # ===== CRM MODELS =====
