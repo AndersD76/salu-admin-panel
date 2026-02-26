@@ -115,14 +115,33 @@ class Broker(Base):
 class Property(Base):
     __tablename__ = "properties"
     id = Column(String, primary_key=True)
+    external_code = Column(String, nullable=True)
     title = Column(String, nullable=True)
     property_type = Column(String, nullable=True)
     city = Column(String, nullable=True)
     neighborhood = Column(String, nullable=True)
+    address = Column(String, nullable=True)
+    street = Column(String, nullable=True)
+    zip_code = Column(String, nullable=True)
+    state = Column(String, nullable=True)
+    description = Column(Text, nullable=True)
+    bedrooms = Column(Integer, default=0)
+    bathrooms = Column(Integer, default=0)
+    suites = Column(Integer, default=0)
+    parking_spaces = Column(Integer, default=0)
+    usable_area = Column(Float, nullable=True)
+    total_area = Column(Float, nullable=True)
     sale_price = Column(Float, nullable=True)
     rental_price = Column(Float, nullable=True)
+    iptu_price = Column(Float, nullable=True)
+    condominium_price = Column(Float, nullable=True)
+    condominium_name = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
+    is_featured = Column(Boolean, default=False)
+    building_id = Column(String, nullable=True)
+    broker_id = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow)
 
 
 class Document(Base):
