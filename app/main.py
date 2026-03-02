@@ -121,7 +121,6 @@ class Property(Base):
     city = Column(String, nullable=True)
     neighborhood = Column(String, nullable=True)
     address = Column(String, nullable=True)
-    street = Column(String, nullable=True)
     zip_code = Column(String, nullable=True)
     state = Column(String, nullable=True)
     description = Column(Text, nullable=True)
